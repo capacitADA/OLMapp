@@ -1382,6 +1382,38 @@ async function guardarServicio(eid) {
     }catch(err){toast('❌ Error: '+err.message);}
 }
 
+function modalEditarServicio(sid) {
+    const s = servicios.find(x=>x.id===sid);
+    if (!s) return;
+    _esidActual=sid; _fotosEditadas=[...(s.fotos||[])];
+    fotosNuevas[0]=fotosNuevas[1]=fotosNuevas[2]=null;
+    showModal(`<div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-h"><h3>Editar servicio</h3><button class="xbtn" onclick="closeModal()">✕</button></div>
+        <div class="modal-b">
+            <div class="fr">
+                <div><label class="fl first">Tipo *</label>
+                    <select class="fi" id="esTipo">
+                        <option ${s.tipo==='Mantenimiento'?'selected':''}>Mantenimiento</option>
+                        <option ${s.tipo==='Reparación'?'selected':''}>Reparación</option>
+                        <option ${s.tipo==='Instalación'?'selected':''}>Instalación</option>
+                    </select>
+                </div>
+                <div><label class="fl first">Fecha *</label>
+                    <input class="fi" type="date" id="esFecha" value="${s.fecha}">
+                </div>
+            </div>
+            <label class="fl">Diagnóstico *</label>
+            <textarea class="fi" id="esDesc" rows="3">${s.descripcion}</textarea>
+            <label class="fl">Próximo mantenimiento</label>
+            <input class="fi" type="date" id="esProx" value="${s.proximoMantenimiento||''}">
+            <div class="modal-foot">
+                <button class="btn btn-gray" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-blue" onclick="actualizarServicio('${sid}')">Guardar cambios</button>
+            </div>
+        </div>
+    </div>`);
+}
+
 async function actualizarServicio(sid) {
     const tipo=document.getElementById('esTipo')?.value;
     const fecha=document.getElementById('esFecha')?.value;
@@ -1391,6 +1423,21 @@ async function actualizarServicio(sid) {
         await updateDoc(doc(db,'servicios',sid),{tipo,fecha,descripcion:desc||'',proximoMantenimiento:prox});
         closeModal();await cargarDatos();toast('✅ Servicio actualizado');
     }catch(err){toast('❌ Error: '+err.message);}
+}
+
+function modalEliminarServicio(sid) {
+    const s = servicios.find(x=>x.id===sid);
+    if (!s) return;
+    showModal(`<div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-h"><h3>Eliminar servicio</h3><button class="xbtn" onclick="closeModal()">✕</button></div>
+        <div class="modal-b">
+            <div class="confirm-box"><p>⚠️ ¿Eliminar este servicio del ${fmtFecha(s.fecha)}?</p></div>
+            <div class="modal-foot">
+                <button class="btn btn-gray" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-red" onclick="eliminarServicio('${sid}')">🗑️ Sí, eliminar</button>
+            </div>
+        </div>
+    </div>`);
 }
 
 async function eliminarServicio(sid) {
@@ -1962,7 +2009,7 @@ window.modalEditarEquipo=modalEditarEquipo; window.actualizarEquipo=actualizarEq
 window.modalEliminarEquipo=modalEliminarEquipo; window.eliminarEquipo=eliminarEquipo;
 window.modalNuevoServicio=modalNuevoServicio; window.guardarServicio=guardarServicio;
 window.modalEditarServicio=modalEditarServicio; window.actualizarServicio=actualizarServicio;
-window.eliminarServicio=eliminarServicio;
+window.modalEliminarServicio=modalEliminarServicio; window.eliminarServicio=eliminarServicio;
 window.modalNuevoTecnico=modalNuevoTecnico; window.guardarTecnico=guardarTecnico;
 window.modalEditarTecnico=modalEditarTecnico; window.actualizarTecnico=actualizarTecnico;
 window.eliminarTecnico=eliminarTecnico;
