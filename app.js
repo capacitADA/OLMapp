@@ -24,6 +24,7 @@ const CIUDADES = ['Bogotá', 'Medellín', 'Cali', 'Bucaramanga', 'Barranquilla',
 
 const TIPOS_DOC = ['CC', 'CE', 'PA', 'NIT', 'TI'];
 
+// ESPECIALIDADES - DEFINIDA ANTES DE USARSE
 const ESPECIALIDADES = [
     { id: 'mecanico', label: '🔧 Mecánico' },
     { id: 'electrico', label: '⚡ Eléctrico' },
@@ -257,9 +258,13 @@ function renderView() {
     
     botnav.style.display = 'flex';
 
-    // Sin sesión: solo mostrar panel (estadísticas)
+    // Sin sesión: mostrar panel y permitir técnicos
     if (!sesionActual) {
-        main.innerHTML = renderPanel();
+        if (currentView === 'tecnicos') {
+            main.innerHTML = renderTecnicos();
+        } else {
+            main.innerHTML = renderPanel();
+        }
         return;
     }
 
@@ -603,14 +608,17 @@ function renderTecnicos() {
             ${esAdmin() ? `<button class="btn btn-blue btn-sm" onclick="modalNuevoTecnico()">+ Nuevo</button>` : ''}
         </div>
         ${tecnicos.map(t => {
-            const esps = (t.especialidades || []).map(id => ESPECIALIDADES.find(e => e.id === id)?.label || id);
+            const esps = (t.especialidades || []).map(id => {
+                const esp = ESPECIALIDADES.find(e => e.id === id);
+                return esp ? esp.label : id;
+            });
             return `<div class="ec">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
                     <div>
                         <div class="ec-name">${t.nombre}</div>
                         <div class="ec-meta">${t.tipoDoc} · ${t.cedula}</div>
-                        <div class="ec-meta" style="margin-top:2px;">${t.cargo}</div>
-                        <div class="ec-meta">📞 ${t.telefono}</div>
+                        <div class="ec-meta" style="margin-top:2px;">${t.cargo || 'Sin cargo'}</div>
+                        <div class="ec-meta">📞 ${t.telefono || 'Sin teléfono'}</div>
                     </div>
                     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
                         <span class="tc-rol-badge ${t.rol === 'admin' ? 'rol-admin' : 'rol-tec'}">${t.rol === 'admin' ? 'Admin' : 'Técnico'}</span>
