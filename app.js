@@ -102,11 +102,12 @@ async function sembrarDatos() {
     if (!snap.empty) return;
     toast('⚙️ Configurando app...');
     
+    // Cliente JMC - Nombre exacto sin tildes para que coincida con la condición
     const cRef = await addDoc(collection(db, 'clientes'), {
-        nombre: 'JERÓNIMO MARTINS COLOMBIA',
+        nombre: 'Jeronimo Martins Colombia',
         telefono: '3212167987',
         email: 'Nestor.gutierres@jeronimo-martins.com',
-        ciudad: 'Bogotá',
+        ciudad: 'Bogota',
         direccion: 'Calle 100 # 7 - 33, Torre 1, Piso 11',
         latitud: '4.6798976',
         longitud: '-74.0415781',
@@ -126,14 +127,14 @@ async function sembrarDatos() {
         equipoId: eRef.id,
         tipo: 'Mantenimiento',
         fecha: new Date().toISOString().split('T')[0],
-        tecnico: 'Oscar Leonardo Martínez',
-        descripcion: 'Revisión general del compresor. Sistema óptimo.',
+        tecnico: 'Oscar Leonardo Martinez',
+        descripcion: 'Revision general del compresor. Sistema optimo.',
         proximoMantenimiento: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         fotos: []
     });
     
     await addDoc(collection(db, 'tecnicos'), {
-        nombre: 'Oscar Leonardo Martínez',
+        nombre: 'Oscar Leonardo Martinez',
         cedula: '0000001',
         tipoDoc: 'CC',
         telefono: '3114831801',
@@ -145,36 +146,36 @@ async function sembrarDatos() {
     });
     
     await addDoc(collection(db, 'tecnicos'), {
-        nombre: 'Juan Pérez',
+        nombre: 'Juan Perez',
         cedula: '10234568',
         tipoDoc: 'CC',
         telefono: '3120000002',
-        cargo: 'Técnico de Campo',
+        cargo: 'Tecnico de Campo',
         rol: 'tecnico',
         especialidades: ['baja', 'media'],
         region: 'Cundinamarca',
         clave: '5678'
     });
     
-    toast('✅ Listo. Cédula: 0000001 · Clave: 1234');
+    toast('✅ Listo. Cedula: 0000001 · Clave: 1234');
 }
 
-const CIUDADES = ['Bogotá', 'Medellín', 'Cali', 'Bucaramanga', 'Barranquilla',
-    'Cúcuta', 'Manizales', 'Pereira', 'Ibagué', 'Villavicencio',
-    'Girón', 'Floridablanca', 'Piedecuesta', 'Pamplona', 'Soacha'];
+const CIUDADES = ['Bogota', 'Medellin', 'Cali', 'Bucaramanga', 'Barranquilla',
+    'Cucuta', 'Manizales', 'Pereira', 'Ibague', 'Villavicencio',
+    'Giron', 'Floridablanca', 'Piedecuesta', 'Pamplona', 'Soacha'];
 
 const TIPOS_DOC = ['CC', 'CE', 'PA', 'NIT', 'TI'];
 
 const ESPECIALIDADES = [
-    { id: 'mecanico', label: 'Mecánico de plantas' },
-    { id: 'baja', label: 'Electricista baja tensión' },
-    { id: 'media', label: 'Electricista media tensión' },
-    { id: 'electronico', label: 'Electrónico' },
+    { id: 'mecanico', label: 'Mecanico de plantas' },
+    { id: 'baja', label: 'Electricista baja tension' },
+    { id: 'media', label: 'Electricista media tension' },
+    { id: 'electronico', label: 'Electronico' },
     { id: 'ups', label: 'UPS' },
-    { id: 'planta', label: 'Plantas eléctricas' }
+    { id: 'planta', label: 'Plantas electricas' }
 ];
 
-const EMPRESA = { nombre: 'OLM INGENIERÍA SAS', nit: '901.050.468-5', contacto: 'Oscar Leonardo Martínez', telefono: '311 4831801', ciudad: 'Bogotá' };
+const EMPRESA = { nombre: 'OLM INGENIERIA SAS', nit: '901.050.468-5', contacto: 'Oscar Leonardo Martinez', telefono: '311 4831801', ciudad: 'Bogota' };
 
 // ===== ESTADO =====
 let currentView = 'panel';
@@ -185,12 +186,12 @@ const fotosNuevas = [null, null, null];
 const stExt = new Array(10).fill(false);
 const stInt = new Array(10).fill(false);
 
-const CK_EXT = ['LIMPIEZA GENERAL','REVISIÓN CONEXIONES','AJUSTE TORNILLERÍA',
-    'REVISIÓN PROTECCIONES','CAMBIO DE CONTACTOR','CAMBIO CONDENSADOR',
-    'CAMBIO CAPACITOR','REPARACIÓN DE FUGA','RECARGA DE GAS','REVISIÓN ACOMETIDA'];
+const CK_EXT = ['LIMPIEZA GENERAL','REVISION CONEXIONES','AJUSTE TORNILLERIA',
+    'REVISION PROTECCIONES','CAMBIO DE CONTACTOR','CAMBIO CONDENSADOR',
+    'CAMBIO CAPACITOR','REPARACION DE FUGA','RECARGA DE GAS','REVISION ACOMETIDA'];
 const CK_INT = ['LIMPIEZA GENERAL','LIMPIEZA SERPENTINES','LIMPIEZA DRENAJES',
-    'REPARACIÓN TARJETA','AJUSTE CORREAS','REPARACIÓN FUGA',
-    'CAMBIO DE BLOWER','REPARACIÓN MOTOR','REVISIÓN ELÉCTRICA','OTROS'];
+    'REPARACION TARJETA','AJUSTE CORREAS','REPARACION FUGA',
+    'CAMBIO DE BLOWER','REPARACION MOTOR','REVISION ELECTRICA','OTROS'];
 
 let _esidActual = null;
 let _fotosEditadas = [];
@@ -244,7 +245,7 @@ function actualizarTopbar() {
     const right = document.getElementById('topbarRight');
     if (!right) return;
     if (!sesionActual) {
-        right.innerHTML = `<span class="topbar-user" id="topbarUser">Sin sesión</span>`;
+        right.innerHTML = `<span class="topbar-user" id="topbarUser">Sin sesion</span>`;
     } else {
         const initials = sesionActual.nombre.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
         const rolBadge = esAdmin()
@@ -267,7 +268,7 @@ function cerrarSesion() {
     sesionActual = null;
     actualizarTopbar();
     renderView();
-    toast('👋 Sesión cerrada');
+    toast('👋 Sesion cerrada');
 }
 
 function goTo(view, cid = null, eid = null) {
@@ -285,7 +286,7 @@ function goTo(view, cid = null, eid = null) {
 }
 
 function renderView() {
-    // BLOQUEO SIN SESIÓN - Solo panel y técnicos
+    // Bloqueo sin sesion - Solo panel y tecnicos
     if (!sesionActual && currentView !== 'panel' && currentView !== 'tecnicos') {
         currentView = 'panel';
     }
@@ -312,15 +313,15 @@ function renderLogin() {
     <div class="login-screen">
         <div class="login-logo-area">
             <img src="OLM_LOGO.png" style="max-height:80px;max-width:220px;object-fit:contain;margin-bottom:10px;" alt="OLM" onerror="this.style.display='none'">
-            <div class="login-brand">OLM INGENIERÍA SAS</div>
-            <div class="login-sub">Plantas y Sistemas Eléctricos</div>
+            <div class="login-brand">OLM INGENIERIA SAS</div>
+            <div class="login-sub">Plantas y Sistemas Electricos</div>
         </div>
         <div class="login-card">
-            <div class="login-card-title">🔑 Iniciar sesión</div>
-            <label class="fl first">Cédula</label>
-            <input class="fi" id="loginCedula" placeholder="Ingresa tu número de cédula" type="number"
+            <div class="login-card-title">🔑 Iniciar sesion</div>
+            <label class="fl first">Cedula</label>
+            <input class="fi" id="loginCedula" placeholder="Ingresa tu numero de cedula" type="number"
                 oninput="resetPin()">
-            <label class="fl">Clave (4 dígitos)</label>
+            <label class="fl">Clave (4 digitos)</label>
             <div class="pin-display">
                 <div class="pin-digit" id="pd0"></div>
                 <div class="pin-digit" id="pd1"></div>
@@ -336,7 +337,7 @@ function renderLogin() {
             <div id="loginMsg"></div>
             <button class="btn-login" onclick="doLogin()">Ingresar</button>
         </div>
-        <div class="login-footer">OLM Ingeniería SAS · Bogotá · v1.0 DEMO</div>
+        <div class="login-footer">OLM Ingenieria SAS · Bogota · v1.0 DEMO</div>
     </div>`;
 }
 
@@ -366,14 +367,14 @@ function doLogin() {
     const cedula = document.getElementById('loginCedula')?.value?.trim();
     const msg = document.getElementById('loginMsg');
     if (!cedula) {
-        msg.innerHTML = '<div class="login-warn">⚠️ Ingresa tu número de cédula</div>'; return;
+        msg.innerHTML = '<div class="login-warn">⚠️ Ingresa tu numero de cedula</div>'; return;
     }
     if (pinActual.length < 4) {
-        msg.innerHTML = '<div class="login-warn">⚠️ Ingresa tu clave de 4 dígitos</div>'; return;
+        msg.innerHTML = '<div class="login-warn">⚠️ Ingresa tu clave de 4 digitos</div>'; return;
     }
     const tec = tecnicos.find(t => t.cedula === cedula && t.clave === pinActual);
     if (!tec) {
-        msg.innerHTML = '<div class="login-error">❌ Cédula o clave incorrecta. Intenta de nuevo.</div>';
+        msg.innerHTML = '<div class="login-error">❌ Cedula o clave incorrecta. Intenta de nuevo.</div>';
         pinActual = ''; updatePinDisplay(); return;
     }
     sesionActual = tec;
@@ -388,8 +389,8 @@ function renderPanel() {
     const año = new Date().getFullYear();
     const mes = getMesActual();
     const man  = servicios.filter(s => s.tipo === 'Mantenimiento');
-    const rep  = servicios.filter(s => s.tipo === 'Reparación');
-    const inst = servicios.filter(s => s.tipo === 'Instalación');
+    const rep  = servicios.filter(s => s.tipo === 'Reparacion');
+    const inst = servicios.filter(s => s.tipo === 'Instalacion');
     const manM = man.filter(s => s.fecha?.startsWith(mes));
     const repM = rep.filter(s => s.fecha?.startsWith(mes));
     const instM= inst.filter(s => s.fecha?.startsWith(mes));
@@ -397,7 +398,7 @@ function renderPanel() {
 
     return `<div class="page">
         <div class="panel-banner">
-            <div class="panel-banner-sub">Plantas y Sistemas Eléctricos</div>
+            <div class="panel-banner-sub">Plantas y Sistemas Electricos</div>
             <div class="panel-banner-title">Panel Principal</div>
         </div>
         <div class="panel-grid">
@@ -423,11 +424,11 @@ function renderPanel() {
                 </div>
                 <div class="panel-box anual-box">
                     <div class="panel-box-num">${rep.length}</div>
-                    <div class="panel-box-lbl">REPARACIÓN</div>
+                    <div class="panel-box-lbl">REPARACION</div>
                 </div>
                 <div class="panel-box anual-box">
                     <div class="panel-box-num">${inst.length}</div>
-                    <div class="panel-box-lbl">INSTALACIÓN</div>
+                    <div class="panel-box-lbl">INSTALACION</div>
                 </div>
             </div>
             <div class="panel-col">
@@ -441,11 +442,11 @@ function renderPanel() {
                 </div>
                 <div class="panel-box mensual-box">
                     <div class="panel-box-num">${repM.length}</div>
-                    <div class="panel-box-lbl">REPARACIÓN</div>
+                    <div class="panel-box-lbl">REPARACION</div>
                 </div>
                 <div class="panel-box mensual-box">
                     <div class="panel-box-num">${instM.length}</div>
-                    <div class="panel-box-lbl">INSTALACIÓN</div>
+                    <div class="panel-box-lbl">INSTALACION</div>
                 </div>
             </div>
         </div>
@@ -458,7 +459,7 @@ function renderClientes() {
             <h2>Clientes (${clientes.length})</h2>
             <button class="btn btn-blue btn-sm" onclick="modalNuevoCliente()">+ Nuevo</button>
         </div>
-        <input class="search" placeholder="🔍 Buscar por nombre, ciudad, teléfono..."
+        <input class="search" placeholder="🔍 Buscar por nombre, ciudad, telefono..."
             oninput="filtrarClientes(this.value)" id="searchClientes">
         <div id="clientesGrid">
             ${clientes.map(c => `
@@ -556,7 +557,7 @@ function renderHistorial() {
         ${ss.map(s => `
         <div class="si">
             <div class="si-top">
-                <span class="badge ${s.tipo==='Mantenimiento'?'b-blue':s.tipo==='Reparación'?'b-red':'b-green'}">${s.tipo}</span>
+                <span class="badge ${s.tipo==='Mantenimiento'?'b-blue':s.tipo==='Reparacion'?'b-red':'b-green'}">${s.tipo}</span>
                 <div style="display:flex;align-items:center;gap:6px;">
                     <span style="font-size:0.75rem;color:var(--hint);">${fmtFecha(s.fecha)}</span>
                     ${puedeEditar(s.tecnico) ? `<button class="ib" style="padding:3px 7px;min-height:28px;" onclick="modalEditarServicio('${s.id}')">✏️</button>` : ''}
@@ -565,7 +566,7 @@ function renderHistorial() {
             </div>
             <div class="si-info">🔧 ${s.tecnico}</div>
             <div class="si-info" style="color:#64748b;">${s.descripcion}</div>
-            ${s.proximoMantenimiento ? `<div style="font-size:0.78rem;color:var(--gold);margin-top:3px;">📅 Próximo: ${fmtFecha(s.proximoMantenimiento)}</div>` : ''}
+            ${s.proximoMantenimiento ? `<div style="font-size:0.78rem;color:var(--gold);margin-top:3px;">📅 Proximo: ${fmtFecha(s.proximoMantenimiento)}</div>` : ''}
             <div class="fotos-strip">
                 ${(s.fotos||[]).map(f=>`<img class="fthumb" src="${f}" loading="lazy">`).join('')}
                 ${!(s.fotos||[]).length ? '<span style="font-size:0.72rem;color:var(--hint);">Sin fotos</span>' : ''}
@@ -609,9 +610,9 @@ function renderServicios() {
         <div class="filtros">
             <select class="fi" id="fAnio"><option value="">Todos los años</option>${años.map(a=>`<option>${a}</option>`).join('')}</select>
             <select class="fi" id="fMes"><option value="">Todos los meses</option>${meses.map((m,i)=>`<option value="${String(i+1).padStart(2,'0')}">${m}</option>`).join('')}</select>
-            <select class="fi" id="fTipo"><option value="">Todos los tipos</option><option>Mantenimiento</option><option>Reparación</option><option>Instalación</option></select>
+            <select class="fi" id="fTipo"><option value="">Todos los tipos</option><option>Mantenimiento</option><option>Reparacion</option><option>Instalacion</option></select>
             <select class="fi" id="fCliente"><option value="">Todos los clientes</option>${clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('')}</select>
-            <select class="fi" id="fTecnico"><option value="">Todos los técnicos</option>${tecnicos.map(t=>`<option>${t.nombre}</option>`).join('')}</select>
+            <select class="fi" id="fTecnico"><option value="">Todos los tecnicos</option>${tecnicos.map(t=>`<option>${t.nombre}</option>`).join('')}</select>
             <button class="btn btn-blue btn-full" onclick="aplicarFiltros()">Aplicar filtros</button>
             <button class="btn btn-gray btn-full" onclick="limpiarFiltros()">Limpiar filtros</button>
         </div>
@@ -639,13 +640,13 @@ function aplicarFiltros() {
         const c = getCl(e?.clienteId);
         return `<div class="si">
             <div class="si-top">
-                <span class="badge ${s.tipo==='Mantenimiento'?'b-blue':s.tipo==='Reparación'?'b-red':'b-green'}">${s.tipo}</span>
+                <span class="badge ${s.tipo==='Mantenimiento'?'b-blue':s.tipo==='Reparacion'?'b-red':'b-green'}">${s.tipo}</span>
                 <span style="font-size:0.75rem;color:var(--hint);">${fmtFecha(s.fecha)}</span>
             </div>
             <div class="si-info">👤 ${c?.nombre||'N/A'} · ${e?.marca||''} ${e?.modelo||''}</div>
             <div class="si-info">📍 ${e?.ubicacion||''} · 🔧 ${s.tecnico}</div>
             <div class="si-info" style="color:#64748b;">${s.descripcion}</div>
-            ${s.proximoMantenimiento?`<div style="font-size:0.75rem;color:var(--gold);margin-top:2px;">📅 Próximo: ${fmtFecha(s.proximoMantenimiento)}</div>`:''}
+            ${s.proximoMantenimiento?`<div style="font-size:0.75rem;color:var(--gold);margin-top:2px;">📅 Proximo: ${fmtFecha(s.proximoMantenimiento)}</div>`:''}
         </div>`;
     }).join('');
 }
@@ -668,16 +669,16 @@ function renderMantenimientos() {
                 ${MESES.map((mes,idx) => {
                     const mp = String(idx+1).padStart(2,'0');
                     const lista = mant.filter(m=>m.proximoMantenimiento?.startsWith(`${año}-${mp}`));
-                    if (!lista.length) return `<tr><td style="color:var(--hint);font-size:0.72rem;background:var(--bg2);">${mes}</td><td colspan="4" style="color:#cbd5e1;font-size:0.7rem;">—</td></tr>`;
+                    if (!lista.length) return `<tr><td style="color:var(--hint);font-size:0.72rem;background:var(--bg2);">${mes}</td><td colspan="4" style="color:#cbd5e1;font-size:0.7rem;">—<\/td></tr>`;
                     return lista.map((m,i) => {
                         const e = getEq(m.equipoId);
                         const c = getCl(e?.clienteId);
                         return `<tr>
-                            ${i===0?`<td rowspan="${lista.length}" style="font-weight:700;font-size:0.75rem;background:var(--bg2);">${mes}</td>`:''}
-                            <td>${fmtFecha(m.proximoMantenimiento)}</td>
-                            <td style="font-size:0.75rem;">${c?.nombre||'N/A'}</td>
-                            <td style="font-size:0.72rem;">${e?`${e.marca} ${e.modelo}`:'N/A'}</td>
-                            <td><button class="rec-btn" onclick="modalRecordar('${e?.clienteId}','${e?.id}','${m.proximoMantenimiento}')">📱</button></td>
+                            ${i===0?`<td rowspan="${lista.length}" style="font-weight:700;font-size:0.75rem;background:var(--bg2);">${mes}<\/td>`:''}
+                            <td>${fmtFecha(m.proximoMantenimiento)}<\/td>
+                            <td style="font-size:0.75rem;">${c?.nombre||'N/A'}<\/td>
+                            <td style="font-size:0.72rem;">${e?`${e.marca} ${e.modelo}`:'N/A'}<\/td>
+                            <td><button class="rec-btn" onclick="modalRecordar('${e?.clienteId}','${e?.id}','${m.proximoMantenimiento}')">📱<\/button><\/td>
                         </tr>`;
                     }).join('');
                 }).join('')}
@@ -690,7 +691,7 @@ function renderMantenimientos() {
 function renderTecnicos() {
     return `<div class="page">
         <div class="sec-head">
-            <h2>Técnicos (${tecnicos.length})</h2>
+            <h2>Tecnicos (${tecnicos.length})</h2>
             ${esAdmin() ? `<button class="btn btn-blue btn-sm" onclick="modalNuevoTecnico()">+ Nuevo</button>` : ''}
         </div>
         ${tecnicos.map(t => {
@@ -699,12 +700,12 @@ function renderTecnicos() {
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
                     <div>
                         <div class="ec-name">${t.nombre}</div>
-                        <div class="ec-meta">${t.tipoDoc} · ${t.cedula}</div>
+                        <div class="ec-meta">${t.tipoDoc}</div>
                         <div class="ec-meta" style="margin-top:2px;">${t.cargo}</div>
                         <div class="ec-meta">📞 ${t.telefono}</div>
                     </div>
                     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-                        <span class="tc-rol-badge ${t.rol==='admin'?'rol-admin':'rol-tec'}">${t.rol==='admin'?'Admin':'Técnico'}</span>
+                        <span class="tc-rol-badge ${t.rol==='admin'?'rol-admin':'rol-tec'}">${t.rol==='admin'?'Admin':'Tecnico'}</span>
                         <div style="display:flex;gap:4px;">
                             ${esAdmin() ? `<button class="ib" onclick="modalEditarTecnico('${t.id}')">✏️</button>
                             <button class="ib" onclick="eliminarTecnico('${t.id}')">🗑️</button>` : ''}
@@ -712,7 +713,7 @@ function renderTecnicos() {
                     </div>
                 </div>
                 <div style="margin-bottom:4px;">${esps.map(e=>`<span class="esp-chip">${e}</span>`).join('')}</div>
-                <div style="font-size:0.72rem;color:var(--muted);">📍 ${t.region||'Sin región asignada'}</div>
+                <div style="font-size:0.72rem;color:var(--muted);">📍 ${t.region||'Sin region asignada'}</div>
                 <div style="margin-top:8px;">
                     <button class="btn btn-blue btn-sm btn-full" onclick="abrirLogin('${t.id}')">🔑 Ingresar como ${t.nombre.split(' ')[0]}</button>
                 </div>
@@ -723,7 +724,7 @@ function renderTecnicos() {
         <div style="margin-top:1.2rem;background:white;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;">
             <div style="background:#1e3a6e;padding:0.7rem 1rem;display:flex;justify-content:space-between;align-items:center;">
                 <div>
-                    <div style="font-size:0.88rem;font-weight:700;color:white;">🏪 Tiendas Jerónimo Martins</div>
+                    <div style="font-size:0.88rem;font-weight:700;color:white;">🏪 Tiendas Jeronimo Martins</div>
                     <div style="font-size:0.68rem;color:#93c5fd;margin-top:2px;">Tabla activa: ${JMC_TIENDAS_VERSION}</div>
                 </div>
                 <span style="background:#c9a227;color:#1e3a6e;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:3px;">${JMC_TIENDAS.length} tiendas</span>
@@ -749,10 +750,10 @@ function renderTecnicos() {
                         </thead>
                         <tbody>
                             ${JMC_TIENDAS.map(t=>`<tr style="border-bottom:0.5px solid var(--bg2);">
-                                <td style="padding:4px 8px;font-weight:700;color:var(--green);">${t.sap}</td>
-                                <td style="padding:4px 8px;">${t.tienda.substring(0,35)}${t.tienda.length>35?'...':''}</td>
-                                <td style="padding:4px 8px;">${t.ciudad}</td>
-                                <td style="padding:4px 8px;">${t.coordinador}</td>
+                                <td style="padding:4px 8px;font-weight:700;color:var(--green);">${t.sap}<\/td>
+                                <td style="padding:4px 8px;">${t.tienda.substring(0,35)}${t.tienda.length>35?'...':''}<\/td>
+                                <td style="padding:4px 8px;">${t.ciudad}<\/td>
+                                <td style="padding:4px 8px;">${t.coordinador}<\/td>
                             </tr>`).join('')}
                         </tbody>
                     </table>
@@ -768,10 +769,10 @@ function abrirLogin(tid) {
         <div class="modal-h"><h3>🔑 Ingresar</h3><button class="xbtn" onclick="closeModal()">✕</button></div>
         <div class="modal-b" style="text-align:center;">
             <div style="font-size:0.95rem;font-weight:700;margin-bottom:2px;">${t.nombre}</div>
-            <div style="font-size:0.78rem;color:var(--hint);margin-bottom:12px;">${t.tipoDoc} · ${t.cedula}</div>
-            <label class="fl first" style="text-align:left;">Cédula</label>
-            <input class="fi" id="mlCedula" placeholder="Ingresa tu cédula" type="number" style="margin-bottom:8px;">
-            <label class="fl" style="text-align:left;">Clave (4 dígitos)</label>
+            <div style="font-size:0.78rem;color:var(--hint);margin-bottom:12px;">${t.tipoDoc}</div>
+            <label class="fl first" style="text-align:left;">Cedula</label>
+            <input class="fi" id="mlCedula" placeholder="Ingresa tu cedula" type="number" style="margin-bottom:8px;">
+            <label class="fl" style="text-align:left;">Clave (4 digitos)</label>
             <div class="pin-display" id="mlPinDisplay" style="margin:8px 0;">
                 <div class="pin-digit active" id="mlpd0"></div>
                 <div class="pin-digit" id="mlpd1"></div>
@@ -816,10 +817,10 @@ function mlLogin(tid) {
     const pin = window._mlPin||'';
     const cedula = document.getElementById('mlCedula')?.value?.trim();
     const msg = document.getElementById('mlMsg');
-    if (!cedula) { if(msg) msg.innerHTML='<div class="login-warn">⚠️ Ingresa tu cédula</div>'; return; }
-    if (pin.length<4) { if(msg) msg.innerHTML='<div class="login-warn">⚠️ Ingresa los 4 dígitos</div>'; return; }
+    if (!cedula) { if(msg) msg.innerHTML='<div class="login-warn">⚠️ Ingresa tu cedula</div>'; return; }
+    if (pin.length<4) { if(msg) msg.innerHTML='<div class="login-warn">⚠️ Ingresa los 4 digitos</div>'; return; }
     if (t.cedula !== cedula || t.clave !== pin) {
-        if(msg) msg.innerHTML='<div class="login-error">❌ Cédula o clave incorrecta</div>';
+        if(msg) msg.innerHTML='<div class="login-error">❌ Cedula o clave incorrecta</div>';
         window._mlPin=''; mlUpdateDisplay(); return;
     }
     sesionActual = t;
@@ -843,16 +844,16 @@ function modalRecordar(clienteId, equipoId, fecha) {
         if (tienda) {
             tel = tienda.telefono;
             destinatario = `${tienda.coordinador} · SAP ${sap}`;
-            msg = `Hola *${tienda.coordinador}*, le recordamos que el activo *${e?.marca} ${e?.modelo}* de la tienda *${tienda.tienda} (SAP ${sap})* tiene programado un mantenimiento para el *${fechaF}*. Por favor confirmarnos si podemos agendar la visita técnica. Gracias — OLM Ingeniería SAS · Bogotá 📞 311 4831801`;
+            msg = `Hola *${tienda.coordinador}*, le recordamos que el activo *${e?.marca} ${e?.modelo}* de la tienda *${tienda.tienda} (SAP ${sap})* tiene programado un mantenimiento para el *${fechaF}*. Por favor confirmarnos si podemos agendar la visita tecnica. Gracias — OLM Ingenieria SAS · Bogota 📞 311 4831801`;
         } else {
             tel = c?.telefono;
             destinatario = c?.nombre;
-            msg = `Hola *${c?.nombre}*, le recordamos que el activo *${e?.marca} ${e?.modelo}* ubicado en *${e?.ubicacion}* tiene programado un mantenimiento para el *${fechaF}*. Por favor confirmarnos. Gracias — OLM Ingeniería SAS · Bogotá 📞 311 4831801`;
+            msg = `Hola *${c?.nombre}*, le recordamos que el activo *${e?.marca} ${e?.modelo}* ubicado en *${e?.ubicacion}* tiene programado un mantenimiento para el *${fechaF}*. Por favor confirmarnos. Gracias — OLM Ingenieria SAS · Bogota 📞 311 4831801`;
         }
     } else {
         tel = c?.telefono;
         destinatario = c?.nombre;
-        msg = `Hola *${c?.nombre}*, le recordamos que su activo *${e?.marca} ${e?.modelo}* ubicado en *${e?.ubicacion}* tiene programado un mantenimiento para el *${fechaF}*. Por favor confirmarnos si podemos agendar la visita técnica. Gracias — OLM Ingeniería SAS · Bogotá 📞 311 4831801`;
+        msg = `Hola *${c?.nombre}*, le recordamos que su activo *${e?.marca} ${e?.modelo}* ubicado en *${e?.ubicacion}* tiene programado un mantenimiento para el *${fechaF}*. Por favor confirmarnos si podemos agendar la visita tecnica. Gracias — OLM Ingenieria SAS · Bogota 📞 311 4831801`;
     }
     showModal(`<div class="modal" onclick="event.stopPropagation()">
         <div class="modal-h"><h3>📱 Recordatorio WhatsApp</h3><button class="xbtn" onclick="closeModal()">✕</button></div>
@@ -876,7 +877,7 @@ function enviarWhatsApp(tel) {
     closeModal(); toast('📱 WhatsApp abierto');
 }
 
-const JMC_ID = 'c3';
+const JMC_ID = null; // Se detecta por nombre
 const JMC_TIENDAS = [
     { sap: '893', tienda: 'Villa del Rosario - Lomitas', ciudad: 'Villa del Rosario', departamento: 'Norte de Santander', direccion: 'Anillo Vial No. 12 – 30 Lote 2', coordinador: 'Leny Grimaldos', cargo: 'Coordinador Sr Mantenimiento', telefono: '3102102100' },
     { sap: '904', tienda: 'Villa del Rosario - Bellavista', ciudad: 'Villa del Rosario', departamento: 'Norte de Santander', direccion: 'Carrera 7 No. 2-34/42', coordinador: 'Leny Grimaldos', cargo: 'Coordinador Sr Mantenimiento', telefono: '3102102100' },
@@ -892,7 +893,9 @@ function getTiendaJMC(sap) {
 }
 
 function esClienteJMC(clienteId) {
-    return clienteId === JMC_ID;
+    const c = getCl(clienteId);
+    // Coincide exactamente con el nombre "Jeronimo Martins Colombia"
+    return c?.nombre === 'Jeronimo Martins Colombia';
 }
 
 function subirCSVJMC(input) {
@@ -901,14 +904,14 @@ function subirCSVJMC(input) {
     const reader = new FileReader();
     reader.onload = ev => {
         const lines = ev.target.result.split('\n').filter(l => l.trim());
-        if (lines.length < 2) { toast('⚠️ CSV vacío o inválido'); return; }
+        if (lines.length < 2) { toast('⚠️ CSV vacio o invalido'); return; }
         const nuevas = [];
         for (let i = 1; i < lines.length; i++) {
             const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g,''));
             if (cols.length < 8 || !cols[0]) continue;
             nuevas.push({ sap: cols[0], tienda: cols[1], ciudad: cols[2], departamento: cols[3], direccion: cols[4], coordinador: cols[5], cargo: cols[6], telefono: cols[7] });
         }
-        if (!nuevas.length) { toast('⚠️ No se encontraron tiendas válidas'); return; }
+        if (!nuevas.length) { toast('⚠️ No se encontraron tiendas validas'); return; }
         const fechaActual = new Date().toISOString().split('T')[0];
         JMC_TIENDAS.length = 0;
         nuevas.forEach(t => JMC_TIENDAS.push(t));
@@ -944,24 +947,24 @@ function modalInformeJMC(eid) {
     const tienda = getTiendaJMC(sapActual);
     const dd = hoy.split('-')[2], mm = hoy.split('-')[1], aa = hoy.split('-')[0].slice(2);
 
-    const tiposAsistencia = ['Reparación','Garantía','Ajuste','Modificación','Servicio','Mejora','Combinación'];
-    const tiposFalla = ['Mecánicas','Material','Instrumentos','Eléctricas','Influencia Externa'];
-    const causas = ['Diseño','Fabricación/Instalación','Operación/Mantenimiento','Administración','Desconocida'];
+    const tiposAsistencia = ['Reparacion','Garantia','Ajuste','Modificacion','Servicio','Mejora','Combinacion'];
+    const tiposFalla = ['Mecanicas','Material','Instrumentos','Electricas','Influencia Externa'];
+    const causas = ['Diseno','Fabricacion/Instalacion','Operacion/Mantenimiento','Administracion','Desconocida'];
 
     showModal(`<div class="modal modal-wide" onclick="event.stopPropagation()">
         <div class="modal-h" style="background:#1e3a6e;">
-            <h3>📋 Informe Jerónimo Martins — FF-JMC-DT-06</h3>
+            <h3>📋 Informe Jeronimo Martins — FF-JMC-DT-06</h3>
             <button class="xbtn" onclick="closeModal()">✕</button>
         </div>
         <div class="modal-b">
             <div style="background:#0d4a3a;color:white;text-align:center;font-size:0.72rem;font-weight:700;padding:4px;margin-bottom:6px;border-radius:4px;">CONTRATISTA</div>
             <div class="fr">
-                <div><label class="fl first">Razón social</label><input class="fi" value="OLM INGENIERÍA SAS" readonly style="background:#f0faf5;font-weight:700;"></div>
+                <div><label class="fl first">Razon social</label><input class="fi" value="OLM INGENIERIA SAS" readonly style="background:#f0faf5;font-weight:700;"></div>
                 <div><label class="fl first">NIT</label><input class="fi" value="901.050.468-5" readonly style="background:#f0faf5;"></div>
             </div>
             <div class="fr">
-                <div><label class="fl">Contacto</label><input class="fi" value="Oscar Leonardo Martínez" readonly style="background:#f0faf5;"></div>
-                <div><label class="fl">Teléfono</label><input class="fi" value="311 4831801" readonly style="background:#f0faf5;"></div>
+                <div><label class="fl">Contacto</label><input class="fi" value="Oscar Leonardo Martinez" readonly style="background:#f0faf5;"></div>
+                <div><label class="fl">Telefono</label><input class="fi" value="311 4831801" readonly style="background:#f0faf5;"></div>
             </div>
             <div style="background:#0d4a3a;color:white;text-align:center;font-size:0.72rem;font-weight:700;padding:4px;margin:10px 0 6px;border-radius:4px;">SOLICITANTE Y TIENDA BENEFICIARIA</div>
             <div class="fr">
@@ -986,7 +989,7 @@ function modalInformeJMC(eid) {
                 <div><label class="fl">Municipio</label><input class="fi" id="jMunicipio" value="${tienda?.ciudad||''}" readonly style="background:#f0faf5;"></div>
                 <div><label class="fl">Departamento</label><input class="fi" id="jDepartamento" value="${tienda?.departamento||''}" readonly style="background:#f0faf5;"></div>
             </div>
-            <div style="background:#0d4a3a;color:white;text-align:center;font-size:0.72rem;font-weight:700;padding:4px;margin:10px 0 6px;border-radius:4px;">INFORMACIÓN ÁREA TÉCNICA</div>
+            <div style="background:#0d4a3a;color:white;text-align:center;font-size:0.72rem;font-weight:700;padding:4px;margin:10px 0 6px;border-radius:4px;">INFORMACION AREA TECNICA</div>
             <div class="fr">
                 <div><label class="fl first">Nombre del equipo</label><input class="fi" id="jEquipo" value="${e?.modelo||''}" readonly style="background:#f0faf5;font-weight:700;"></div>
                 <div><label class="fl first">Marca</label><input class="fi" id="jMarca" value="${e?.marca||''}" readonly style="background:#f0faf5;font-weight:700;"></div>
@@ -995,7 +998,7 @@ function modalInformeJMC(eid) {
             <div style="background:#0d4a3a;color:white;text-align:center;font-size:0.72rem;font-weight:700;padding:4px;margin:10px 0 6px;border-radius:4px;">TIPO DE ASISTENCIA</div>
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;">
                 ${tiposAsistencia.map(t=>`<label style="display:flex;align-items:center;gap:4px;font-size:0.78rem;cursor:pointer;">
-                    <input type="radio" name="jTipoAsi" value="${t}" ${t==='Reparación'?'checked':''}> ${t}
+                    <input type="radio" name="jTipoAsi" value="${t}" ${t==='Reparacion'?'checked':''}> ${t}
                 </label>`).join('')}
             </div>
             <div style="background:#0d4a3a;color:white;text-align:center;font-size:0.72rem;font-weight:700;padding:4px;margin:10px 0 6px;border-radius:4px;">TIPO DE FALLA</div>
@@ -1004,32 +1007,32 @@ function modalInformeJMC(eid) {
                     <input type="radio" name="jTipoFalla" value="${t}"> ${t}
                 </label>`).join('')}
             </div>
-            <div style="background:#0d4a3a;color:white;text-align:center;font-size:0.72rem;font-weight:700;padding:4px;margin:10px 0 6px;border-radius:4px;">CAUSA DE FALLAS BÁSICAS</div>
+            <div style="background:#0d4a3a;color:white;text-align:center;font-size:0.72rem;font-weight:700;padding:4px;margin:10px 0 6px;border-radius:4px;">CAUSA DE FALLAS BASICAS</div>
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;">
                 ${causas.map(t=>`<label style="display:flex;align-items:center;gap:4px;font-size:0.78rem;cursor:pointer;">
                     <input type="radio" name="jCausa" value="${t}"> ${t}
                 </label>`).join('')}
             </div>
-            <label class="fl">Descripción de la falla (funcionario tienda)</label>
+            <label class="fl">Descripcion de la falla (funcionario tienda)</label>
             <textarea class="fi" id="jDescFalla" rows="2"></textarea>
-            <label class="fl">Diagnóstico del técnico</label>
+            <label class="fl">Diagnostico del tecnico</label>
             <textarea class="fi" id="jDiag" rows="3"></textarea>
             <label class="fl">Repuestos cambiados</label>
             <textarea class="fi" id="jRepuestos" rows="2"></textarea>
             <label class="fl">Observaciones</label>
             <textarea class="fi" id="jObs" rows="2"></textarea>
-            <div style="background:#0d4a3a;color:white;text-align:center;font-size:0.72rem;font-weight:700;padding:4px;margin:10px 0 6px;border-radius:4px;">EVALUACIÓN DEL SERVICIO</div>
+            <div style="background:#0d4a3a;color:white;text-align:center;font-size:0.72rem;font-weight:700;padding:4px;margin:10px 0 6px;border-radius:4px;">EVALUACION DEL SERVICIO</div>
             ${[
                 ['SEGURIDAD','Labor genera riesgo de accidentalidad para clientes y/o colaboradores'],
-                ['SEGURIDAD','Labor ofrece algún riesgo para la integridad del equipo'],
+                ['SEGURIDAD','Labor ofrece algun riesgo para la integridad del equipo'],
                 ['FUNCIONAMIENTO','La falla reportada fue solucionada con el trabajo realizado'],
                 ['FUNCIONAMIENTO','Para operar el equipo se siguen los pasos normales de manejo anteriores a la asistencia'],
-                ['CALIDAD','La calidad del trabajo está acorde a la requerida por el personal o el equipo'],
-                ['LIMPIEZA Y ORGANIZACIÓN','El equipo/área intervenida se dejó armada y organizada como se encontraba'],
-                ['LIMPIEZA Y ORGANIZACIÓN','Los escombros y suciedad generada por el técnico fue aseada'],
-                ['CAPACITACIÓN','Se indicó la causa de la novedad al personal que recibió el trabajo'],
-                ['CAPACITACIÓN','Se indicó cómo prevenir que el problema se vuelva a presentar'],
-                ['CAPACITACIÓN','Se indicó cómo actuar en caso de que el problema se vuelva a presentar'],
+                ['CALIDAD','La calidad del trabajo esta acorde a la requerida por el personal o el equipo'],
+                ['LIMPIEZA Y ORGANIZACION','El equipo/area intervenida se dejo armada y organizada como se encontraba'],
+                ['LIMPIEZA Y ORGANIZACION','Los escombros y suciedad generada por el tecnico fue aseada'],
+                ['CAPACITACION','Se indico la causa de la novedad al personal que recibio el trabajo'],
+                ['CAPACITACION','Se indico como prevenir que el problema se vuelva a presentar'],
+                ['CAPACITACION','Se indico como actuar en caso de que el problema se vuelva a presentar'],
             ].map((item,i)=>`
             <div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:4px;padding:4px 0;border-bottom:0.5px solid var(--border);">
                 <span style="font-size:0.72rem;color:#334155;">${item[1]}</span>
@@ -1040,10 +1043,10 @@ function modalInformeJMC(eid) {
                     <input type="radio" name="jChk${i}" value="nocumple"> NO CUMPLE
                 </label>
             </div>`).join('')}
-            <div style="background:#0d4a3a;color:white;text-align:center;font-size:0.72rem;font-weight:700;padding:4px;margin:10px 0 6px;border-radius:4px;">CONSTANCIA DE REALIZACIÓN</div>
+            <div style="background:#0d4a3a;color:white;text-align:center;font-size:0.72rem;font-weight:700;padding:4px;margin:10px 0 6px;border-radius:4px;">CONSTANCIA DE REALIZACION</div>
             <div class="fr">
-                <div><label class="fl first">Técnico encargado</label><input class="fi" value="${sesionActual?.nombre||''}" readonly style="background:#f0faf5;"></div>
-                <div><label class="fl first">Cédula</label><input class="fi" value="${sesionActual?.cedula||''}" readonly style="background:#f0faf5;"></div>
+                <div><label class="fl first">Tecnico encargado</label><input class="fi" value="${sesionActual?.nombre||''}" readonly style="background:#f0faf5;"></div>
+                <div><label class="fl first">Cedula</label><input class="fi" value="${sesionActual?.cedula||''}" readonly style="background:#f0faf5;"></div>
             </div>
             <div class="fr">
                 <div><label class="fl">Hora entrada</label><input class="fi" type="time" id="jHEntrada"></div>
@@ -1051,7 +1054,7 @@ function modalInformeJMC(eid) {
             </div>
             <div class="fr">
                 <div><label class="fl">Nombre funcionario tienda</label><input class="fi" id="jFuncNombre"></div>
-                <div><label class="fl">Cédula</label><input class="fi" id="jFuncCedula"></div>
+                <div><label class="fl">Cedula</label><input class="fi" id="jFuncCedula"></div>
             </div>
             <div class="fr">
                 <div><label class="fl">Cargo</label><input class="fi" id="jFuncCargo"></div>
@@ -1113,10 +1116,10 @@ function exportarInformeJMC(eid) {
     const mkCb = ok => `<span style="display:inline-block;width:9px;height:9px;border:1px solid #333;background:${ok?'#000':'#fff'};"></span>`;
     const checkRow = (cat, label, cumple, rs) =>
         `<tr>
-            ${rs > 0 ? `<td style="font-style:italic;font-weight:700;font-size:7.5px;border:1px solid #555;padding:2px 4px;vertical-align:middle;" rowspan="${rs}">${cat}</td>` : ''}
-            <td style="border:1px solid #555;padding:2px 4px;font-size:7.5px;">${label}</td>
-            <td style="text-align:center;border:1px solid #555;font-size:10px;font-weight:700;color:${cumple?'#000':'#bbb'};">${cumple?'X':''}</td>
-            <td style="text-align:center;border:1px solid #555;font-size:10px;font-weight:700;color:${!cumple?'#000':'#bbb'};">${!cumple?'X':''}</td>
+            ${rs > 0 ? `<td style="font-style:italic;font-weight:700;font-size:7.5px;border:1px solid #555;padding:2px 4px;vertical-align:middle;" rowspan="${rs}">${cat}<\/td>` : ''}
+            <td style="border:1px solid #555;padding:2px 4px;font-size:7.5px;">${label}<\/td>
+            <td style="text-align:center;border:1px solid #555;font-size:10px;font-weight:700;color:${cumple?'#000':'#bbb'};">${cumple?'X':''}<\/td>
+            <td style="text-align:center;border:1px solid #555;font-size:10px;font-weight:700;color:${!cumple?'#000':'#bbb'};">${!cumple?'X':''}<\/td>
         </tr>`;
 
     const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
@@ -1134,12 +1137,12 @@ td,th{border:1px solid #555;padding:2px 4px;font-size:7.5px;vertical-align:top;}
 .ri{display:flex;align-items:center;gap:3px;font-size:7.5px;}
 .tbl1{border:1px solid #555;border-top:none;margin-bottom:0;}
 .tbl1 td{border:none;border-bottom:1px solid #555;}
-</style></head><body>
+<\/style><\/head><body>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;padding-bottom:3px;border-bottom:1px solid #999;">
     <img src="${araB64}" style="height:38px;object-fit:contain;">
     <div style="text-align:center;">
-        <div style="font-size:13px;font-weight:700;">JERÓNIMO MARTINS COLOMBIA</div>
-        <div style="font-size:8px;font-weight:700;color:#333;margin-top:1px;">FORMATO ÚNICO DE SOPORTE — FF-JMC-DT-06</div>
+        <div style="font-size:13px;font-weight:700;">JERONIMO MARTINS COLOMBIA</div>
+        <div style="font-size:8px;font-weight:700;color:#333;margin-top:1px;">FORMATO UNICO DE SOPORTE — FF-JMC-DT-06</div>
     </div>
     <div style="text-align:right;">
         <img src="${jmB64}" style="height:34px;object-fit:contain;display:block;margin-bottom:1px;">
@@ -1148,74 +1151,60 @@ td,th{border:1px solid #555;padding:2px 4px;font-size:7.5px;vertical-align:top;}
 </div>
 <div class="sec">CONTRATISTA</div>
 <table style="border:1px solid #555;border-top:none;margin-bottom:2px;">
-    <tr><td style="width:30%"><span class="lbl">Razón social</span><span class="val">OLM INGENIERÍA SAS</span></td><td style="width:18%"><span class="lbl">N° NIT</span><span class="val">901.050.468-5</span></td><td style="width:34%"><span class="lbl">Contacto</span><span class="val">Oscar Leonardo Martínez</span></td><td style="width:18%"><span class="lbl">Teléfono</span><span class="val">311 4831801</span></td></tr>
-</table>
+    <tr><td style="width:30%"><span class="lbl">Razon social</span><span class="val">OLM INGENIERIA SAS</span><\/td><td style="width:18%"><span class="lbl">N° NIT</span><span class="val">901.050.468-5</span><\/td><td style="width:34%"><span class="lbl">Contacto</span><span class="val">Oscar Leonardo Martinez</span><\/td><td style="width:18%"><span class="lbl">Telefono</span><span class="val">311 4831801</span><\/td>\n</tr>\n</table>
 <div class="sec">SOLICITANTE Y TIENDA BENEFICIARIA</div>
 <table style="border:1px solid #555;border-top:none;margin-bottom:2px;">
-    <tr><td style="width:50%"><span class="lbl">Nombre del solicitante</span><span class="val">${document.getElementById('jNombreSol')?.value||''}</span></td><td colspan="3"><span class="lbl">Cargo</span>${document.getElementById('jCargo')?.value||''}</td></tr>
-    <tr><td><span class="lbl">Nombre de la tienda</span><span class="val">${document.getElementById('jTienda')?.value||''}</span></td><td style="width:10%"><span class="lbl">N° Tienda</span><span class="val">${sap}</span></td><td style="width:18%;background:#bfbfbf;vertical-align:middle;"><div style="font-size:6.5px;font-weight:700;text-align:center;">N° TICKET:</div><div style="font-size:13px;font-weight:700;text-align:center;color:#c62828;">${ticket}</div></div></td><td style="width:18%;padding:0;" rowspan="2"><div style="padding:2px 4px;border-bottom:1px solid #555;"><span class="lbl">Fecha</span><span class="val" style="font-size:9px;">${dd}/${mm}/${aa}</span></div><div style="padding:2px 4px;">&nbsp;</div></div></td></tr>
-    <tr><td><span class="lbl">Municipio</span>${document.getElementById('jMunicipio')?.value||''}</span></td><td colspan="2"><span class="lbl">Departamento</span>${document.getElementById('jDepartamento')?.value||''}</span></td></tr>
-</table>
-<div class="sec">INFORMACIÓN ÁREA TÉCNICA</div>
+    <tr><td style="width:50%"><span class="lbl">Nombre del solicitante</span><span class="val">${document.getElementById('jNombreSol')?.value||''}<\/span><\/td><td colspan="3"><span class="lbl">Cargo</span>${document.getElementById('jCargo')?.value||''}<\/td>\n</tr>
+    <tr><td><span class="lbl">Nombre de la tienda</span><span class="val">${document.getElementById('jTienda')?.value||''}<\/span><\/td><td style="width:10%"><span class="lbl">N° Tienda</span><span class="val">${sap}<\/span><\/td><td style="width:18%;background:#bfbfbf;vertical-align:middle;"><div style="font-size:6.5px;font-weight:700;text-align:center;">N° TICKET:</div><div style="font-size:13px;font-weight:700;text-align:center;color:#c62828;">${ticket}</div><\/div><\/td><td style="width:18%;padding:0;" rowspan="2"><div style="padding:2px 4px;border-bottom:1px solid #555;"><span class="lbl">Fecha</span><span class="val" style="font-size:9px;">${dd}/${mm}/${aa}</span></div><div style="padding:2px 4px;">&nbsp;</div><\/div><\/td>\n</tr>
+    <tr><td><span class="lbl">Municipio</span>${document.getElementById('jMunicipio')?.value||''}<\/span><\/td><td colspan="2"><span class="lbl">Departamento</span>${document.getElementById('jDepartamento')?.value||''}<\/span><\/td>\n</tr>
+\n</table>
+<div class="sec">INFORMACION AREA TECNICA</div>
 <table style="border:1px solid #555;border-top:none;margin-bottom:2px;">
-    <tr><td style="width:35%"><span class="lbl">Nombre del equipo</span><span class="val">${document.getElementById('jEquipo')?.value||''}</span></td><td style="width:30%"><span class="lbl">Marca</span><span class="val">${document.getElementById('jMarca')?.value||''}</span></td><td style="width:35%"><span class="lbl">Serial</span><span class="val">${document.getElementById('jSerial')?.value||''}</span></td></tr>
-</table>
+    <tr><td style="width:35%"><span class="lbl">Nombre del equipo</span><span class="val">${document.getElementById('jEquipo')?.value||''}<\/span><\/td><td style="width:30%"><span class="lbl">Marca</span><span class="val">${document.getElementById('jMarca')?.value||''}<\/span><\/td><td style="width:35%"><span class="lbl">Serial</span><span class="val">${document.getElementById('jSerial')?.value||''}<\/span><\/td>\n</tr>\n</table>
 <div class="sec">TIPO DE ASISTENCIA</div>
-<div class="rrow">${['Reparación','Garantía','Ajuste','Modificación','Servicio','Mejora','Combinación'].map(t=>`<div class="ri">${mkCb(getRadio('jTipoAsi')===t)} ${t}</div>`).join('')}</div>
+<div class="rrow">${['Reparacion','Garantia','Ajuste','Modificacion','Servicio','Mejora','Combinacion'].map(t=>`<div class="ri">${mkCb(getRadio('jTipoAsi')===t)} ${t}</div>`).join('')}</div>
 <div class="sec" style="margin-top:2px;">TIPO DE FALLA</div>
-<div class="rrow">${['Mecánicas','Material','Instrumentos','Eléctricas','Influencia Externa'].map(t=>`<div class="ri">${mkCb(getRadio('jTipoFalla')===t)} ${t}</div>`).join('')}</div>
-<div class="sec" style="margin-top:2px;">CAUSA DE FALLAS BÁSICAS</div>
-<div class="rrow">${['Diseño','Fabricación/Instalación','Operación/Mantenimiento','Administración','Desconocida'].map(t=>`<div class="ri">${mkCb(getRadio('jCausa')===t)} ${t}</div>`).join('')}</div>
-<table class="tbl1" style="margin-top:2px;"><tr><td style="border:1px solid #555;"><strong>Descripción de la falla funcionario tienda:</strong></td></tr>
-<tr style="height:13px;"><td style="border:1px solid #555;border-top:none;font-size:8px;">${document.getElementById('jDescFalla')?.value||''}</td></tr>
-<tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"></td></tr></table>
-<table class="tbl1" style="margin-top:2px;"><tr><td style="border:1px solid #555;"><strong>Diagnóstico del técnico:</strong></td></tr>
-<tr style="height:13px;"><td style="border:1px solid #555;border-top:none;font-size:8px;">${document.getElementById('jDiag')?.value||''}</td></tr>
-<tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"></td></tr>
-<tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"></td></tr>
-<tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"></td></tr>
-<tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"></td></tr></table>
-<table class="tbl1" style="margin-top:2px;"><tr><td style="border:1px solid #555;"><strong>Repuestos cambiados:</strong></td></tr>
-<tr style="height:13px;"><td style="border:1px solid #555;border-top:none;font-size:8px;">${document.getElementById('jRepuestos')?.value||''}</td></tr>
-<tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"></td></tr></table>
-<table class="tbl1" style="margin-top:2px;"><tr><td style="border:1px solid #555;"><strong>Observaciones:</strong></td></tr>
-<tr style="height:13px;"><td style="border:1px solid #555;border-top:none;font-size:8px;">${document.getElementById('jObs')?.value||''}</td></tr>
-<tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"></td></tr>
-<tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"></td></tr></table>
-<div class="sec" style="margin-top:2px;">EVALUACIÓN DEL SERVICIO</div>
+<div class="rrow">${['Mecanicas','Material','Instrumentos','Electricas','Influencia Externa'].map(t=>`<div class="ri">${mkCb(getRadio('jTipoFalla')===t)} ${t}</div>`).join('')}</div>
+<div class="sec" style="margin-top:2px;">CAUSA DE FALLAS BASICAS</div>
+<div class="rrow">${['Diseno','Fabricacion/Instalacion','Operacion/Mantenimiento','Administracion','Desconocida'].map(t=>`<div class="ri">${mkCb(getRadio('jCausa')===t)} ${t}</div>`).join('')}</div>
+<table class="tbl1" style="margin-top:2px;"><tr><td style="border:1px solid #555;"><strong>Descripcion de la falla funcionario tienda:</strong><\/td>\n</tr><tr style="height:13px;"><td style="border:1px solid #555;border-top:none;font-size:8px;">${document.getElementById('jDescFalla')?.value||''}<\/td>\n</tr><tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"><\/td>\n</tr>\n</table>
+<table class="tbl1" style="margin-top:2px;"><tr><td style="border:1px solid #555;"><strong>Diagnostico del tecnico:</strong><\/td>\n</tr><tr style="height:13px;"><td style="border:1px solid #555;border-top:none;font-size:8px;">${document.getElementById('jDiag')?.value||''}<\/td>\n</tr><tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"><\/td>\n</tr><tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"><\/td>\n</tr><tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"><\/td>\n</tr><tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"><\/td>\n</tr>\n</table>
+<table class="tbl1" style="margin-top:2px;"><tr><td style="border:1px solid #555;"><strong>Repuestos cambiados:</strong><\/td>\n</tr><tr style="height:13px;"><td style="border:1px solid #555;border-top:none;font-size:8px;">${document.getElementById('jRepuestos')?.value||''}<\/td>\n</tr><tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"><\/td>\n</tr>\n</table>
+<table class="tbl1" style="margin-top:2px;"><tr><td style="border:1px solid #555;"><strong>Observaciones:</strong><\/td>\n</tr><tr style="height:13px;"><td style="border:1px solid #555;border-top:none;font-size:8px;">${document.getElementById('jObs')?.value||''}<\/td>\n</tr><tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"><\/td>\n</tr><tr style="height:13px;"><td style="border:1px solid #555;border-top:none;"><\/td>\n</tr>\n</table>
+<div class="sec" style="margin-top:2px;">EVALUACION DEL SERVICIO</div>
 <table style="border:1px solid #555;border-top:none;">
-<thead><tr style="background:#bfbfbf;"><th style="width:90px;text-align:center;font-size:7.5px;" colspan="2">PARÁMETROS DE EVALUACIÓN</th><th style="width:48px;text-align:center;font-size:7.5px;">CUMPLE</th><th style="width:58px;text-align:center;font-size:7.5px;">NO CUMPLE</th></tr></thead>
+<thead><tr style="background:#bfbfbf;"><th style="width:90px;text-align:center;font-size:7.5px;" colspan="2">PARAMETROS DE EVALUACION</th><th style="width:48px;text-align:center;font-size:7.5px;">CUMPLE</th><th style="width:58px;text-align:center;font-size:7.5px;">NO CUMPLE</th>\n</tr></thead>
 <tbody>
 ${checkRow('SEGURIDAD','La labor realizada genera una alta riesgo de accidentalidad para los clientes y/o colaboradores',checks[0],2)}
-${checkRow('','La labor realizada ofrece algún riesgo para la integridad del equipo',checks[1],0)}
+${checkRow('','La labor realizada ofrece algun riesgo para la integridad del equipo',checks[1],0)}
 ${checkRow('FUNCIONAMIENTO','La falla reportada fue solucionada con el trabajo realizado',checks[2],2)}
-${checkRow('','Para operar y/o asear el equipo o área intervenida se siguen los pasos normales de manejo anteriores a la asistencia',checks[3],0)}
+${checkRow('','Para operar y/o asear el equipo o area intervenida se siguen los pasos normales de manejo anteriores a la asistencia',checks[3],0)}
 ${checkRow('CALIDAD','La calidad del trabajo esta de acuerdo a la requerida por el personal o el equipo',checks[4],1)}
-${checkRow('LIMPIEZA Y ORGANIZACIÓN','El equipo o área intervenida se dejo armado y/o organizado como se encontraba en un inicio',checks[5],2)}
-${checkRow('','Los escombros y suciedad generada por el técnico fue aseado',checks[6],0)}
-${checkRow('CAPACITACION','Se indico la causa de la novedad al personal que recibió el trabajo',checks[7],3)}
+${checkRow('LIMPIEZA Y ORGANIZACION','El equipo o area intervenida se dejo armado y/o organizado como se encontraba en un inicio',checks[5],2)}
+${checkRow('','Los escombros y suciedad generada por el tecnico fue aseado',checks[6],0)}
+${checkRow('CAPACITACION','Se indico la causa de la novedad al personal que recibio el trabajo',checks[7],3)}
 ${checkRow('','Se indico como prevenir que el problema se vuelva a presentar',checks[8],0)}
 ${checkRow('','Se indico como actuar en caso de que el problema se vuelva a presentar',checks[9],0)}
 </tbody>
-</table>
+\n</table>
 <div class="sec" style="margin-top:2px;">CONSTANCIA REALIZACION ASISTENCIA</div>
 <table style="border:1px solid #555;border-top:none;">
-<thead><tr><th style="width:17%">Contratistas</th><th style="width:11%">Cédula</th><th style="width:12%">Hora de entrada</th><th style="width:11%">Hora de salida</th><th style="width:12%">Datos</th><th style="width:37%">Funcionario de la tienda</th></tr></thead>
+<thead><tr><th style="width:17%">Contratistas</th><th style="width:11%">Cedula</th><th style="width:12%">Hora de entrada</th><th style="width:11%">Hora de salida</th><th style="width:12%">Datos</th><th style="width:37%">Funcionario de la tienda</th>\n</tr></thead>
 <tbody>
-<tr><td style="vertical-align:top;">${sesionActual?.nombre||''}</td><td style="vertical-align:top;">${sesionActual?.cedula||''}</td><td style="vertical-align:top;">${document.getElementById('jHEntrada')?.value||''}</td><td style="vertical-align:top;">${document.getElementById('jHSalida')?.value||''}</td><td style="font-size:7.5px;vertical-align:top;">Nombre:</td><td style="vertical-align:top;">${document.getElementById('jFuncNombre')?.value||''}</td></tr>
-<tr><td></td><td></td><td></td><td></td><td style="font-size:7.5px;">Cedula:</td><td>${document.getElementById('jFuncCedula')?.value||''}</td></tr>
-<tr><td></td><td></td><td></td><td></td><td style="font-size:7.5px;">Cargo:</td><td>${document.getElementById('jFuncCargo')?.value||''}</td></tr>
-<tr><td></td><td></td><td></td><td></td><td style="font-size:7.5px;">SAP:</td><td>${document.getElementById('jFuncSAP')?.value||''}</td></tr>
-<tr><td colspan="2" style="height:52px;vertical-align:top;"><strong>Firma Técnico Encargado:</strong><br><br>${sesionActual?.nombre||''}</td>
-<td colspan="2" style="height:52px;vertical-align:top;"><strong>Cargo:</strong></td>
-<td colspan="2" style="height:52px;vertical-align:top;"><strong>Firma:</strong><br>${firmaDataUrl ? `<img src="${firmaDataUrl}" style="max-height:42px;max-width:170px;margin-top:3px;">` : ''}</td></tr>
+<tr><td style="vertical-align:top;">${sesionActual?.nombre||''}<\/td><td style="vertical-align:top;">${sesionActual?.cedula||''}<\/td><td style="vertical-align:top;">${document.getElementById('jHEntrada')?.value||''}<\/td><td style="vertical-align:top;">${document.getElementById('jHSalida')?.value||''}<\/td><td style="font-size:7.5px;vertical-align:top;">Nombre:<\/td><td style="vertical-align:top;">${document.getElementById('jFuncNombre')?.value||''}<\/td>\n</tr>
+<tr><td><\/td><td><\/td><td><\/td><td><\/td><td style="font-size:7.5px;">Cedula:<\/td><td>${document.getElementById('jFuncCedula')?.value||''}<\/td>\n</tr>
+<tr><td><\/td><td><\/td><td><\/td><td><\/td><td style="font-size:7.5px;">Cargo:<\/td><td>${document.getElementById('jFuncCargo')?.value||''}<\/td>\n</tr>
+<tr><td><\/td><td><\/td><td><\/td><td><\/td><td style="font-size:7.5px;">SAP:<\/td><td>${document.getElementById('jFuncSAP')?.value||''}<\/td>\n</tr>
+<tr><td colspan="2" style="height:52px;vertical-align:top;"><strong>Firma Tecnico Encargado:</strong><br><br>${sesionActual?.nombre||''}<\/td>
+<td colspan="2" style="height:52px;vertical-align:top;"><strong>Cargo:</strong><\/td>
+<td colspan="2" style="height:52px;vertical-align:top;"><strong>Firma:</strong><br>${firmaDataUrl ? `<img src="${firmaDataUrl}" style="max-height:42px;max-width:170px;margin-top:3px;">` : ''}<\/td>\n</tr>
 </tbody>
-</table>
+\n</table>
 <script>
 document.title = '${nombreArch}';
 window.addEventListener('load', function(){ setTimeout(function(){ window.print(); }, 600); });
-</script>
-</body></html>`;
+<\/script>
+<\/body><\/html>`;
     const blob = new Blob([html], {type:'text/html;charset=utf-8'});
     const blobUrl = URL.createObjectURL(blob);
     const v = window.open(blobUrl, '_blank');
@@ -1228,7 +1217,7 @@ window.addEventListener('load', function(){ setTimeout(function(){ window.print(
 }
 
 function modalNuevoServicio(eid) {
-    if (!sesionActual) { toast('🔑 Inicia sesión para continuar'); return; }
+    if (!sesionActual) { toast('🔑 Inicia sesion para continuar'); return; }
     const e = getEq(eid);
     const c = getCl(e?.clienteId);
     const hoy = new Date().toISOString().split('T')[0];
@@ -1244,14 +1233,14 @@ function modalNuevoServicio(eid) {
                 ${tiendaJMC ? `<br><span style="font-size:0.72rem;color:var(--green);font-weight:600;">🏪 ${tiendaJMC.tienda} · ${tiendaJMC.ciudad}</span>` : ''}
             </div>
             <div class="fr">
-                <div><label class="fl first">Tipo *</label><select class="fi" id="sTipo" onchange="onTipoChange()"><option>Mantenimiento</option><option>Reparación</option><option>Instalación</option></select></div>
+                <div><label class="fl first">Tipo *</label><select class="fi" id="sTipo" onchange="onTipoChange()"><option>Mantenimiento</option><option>Reparacion</option><option>Instalacion</option></select></div>
                 <div><label class="fl first">Fecha *</label><input class="fi" type="date" id="sFecha" value="${hoy}"></div>
             </div>
-            <label class="fl">Técnico</label><input class="fi" id="sTecnico" value="${sesionActual?.nombre||''}" readonly style="background:#f0faf5;">
-            ${esJMC ? `<div style="background:#f5f3ff;border:0.5px solid #c4b5fd;border-radius:10px;padding:0.65rem;margin-top:0.65rem;display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:0.8rem;color:#5b21b6;flex:1;">📋 Informe técnico Jerónimo Martins</span><button class="btn btn-sm" style="background:#7c3aed;color:white;min-height:36px;" onclick="modalInformeJMC('${eid}')">Abrir</button></div>` : ''}
-            <label class="fl">Diagnóstico / Descripción *</label><textarea class="fi" id="sDesc" rows="3" placeholder="Trabajo realizado, observaciones..."></textarea>
-            <div class="mant-box hidden" id="mantBox"><label class="fl first">📅 Próximo mantenimiento</label><input class="fi" type="date" id="proxFecha"></div>
-            <label class="fl" style="margin-top:0.7rem;">📷 Fotos (máx 3)</label>
+            <label class="fl">Tecnico</label><input class="fi" id="sTecnico" value="${sesionActual?.nombre||''}" readonly style="background:#f0faf5;">
+            ${esJMC ? `<div style="background:#f5f3ff;border:0.5px solid #c4b5fd;border-radius:10px;padding:0.65rem;margin-top:0.65rem;display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:0.8rem;color:#5b21b6;flex:1;">📋 Informe tecnico Jeronimo Martins</span><button class="btn btn-sm" style="background:#7c3aed;color:white;min-height:36px;" onclick="modalInformeJMC('${eid}')">Abrir</button></div>` : ''}
+            <label class="fl">Diagnostico / Descripcion *</label><textarea class="fi" id="sDesc" rows="3" placeholder="Trabajo realizado, observaciones..."></textarea>
+            <div class="mant-box hidden" id="mantBox"><label class="fl first">📅 Proximo mantenimiento</label><input class="fi" type="date" id="proxFecha"></div>
+            <label class="fl" style="margin-top:0.7rem;">📷 Fotos (max 3)</label>
             <div class="foto-row">${[0,1,2].map(i=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;"><div class="fslot" id="fslot${i}" onclick="document.getElementById('finput${i}').click()"><div class="fslot-plus">+</div><div class="fslot-lbl">Foto ${i+1}</div><input type="file" id="finput${i}" accept="image/*" style="display:none" onchange="previewFoto(this,${i})"></div></div>`).join('')}</div>
             <div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="guardarServicio('${eid}')">💾 Guardar</button></div>
         </div>
@@ -1262,44 +1251,44 @@ function modalNuevoServicio(eid) {
 function onTipoChange() { const tipo = document.getElementById('sTipo')?.value; const box = document.getElementById('mantBox'); if (box) box.classList.toggle('hidden', tipo !== 'Mantenimiento'); }
 function previewFoto(input, idx) { if (!input.files||!input.files[0]) return; fotosNuevas[idx] = input.files[0]; const reader = new FileReader(); reader.onload = e => { const slot = document.getElementById('fslot'+idx); if (slot) slot.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;"><button class="fslot-del" onclick="borrarFoto(event,${idx})">✕</button><input type="file" id="finput${idx}" accept="image/*" style="display:none" onchange="previewFoto(this,${idx})">`; }; reader.readAsDataURL(input.files[0]); }
 function borrarFoto(e, idx) { e.stopPropagation(); fotosNuevas[idx]=null; const slot = document.getElementById('fslot'+idx); if (slot) { slot.innerHTML=`<div class="fslot-plus">+</div><div class="fslot-lbl">Foto ${idx+1}</div><input type="file" id="finput${idx}" accept="image/*" style="display:none" onchange="previewFoto(this,${idx})">`; slot.onclick=()=>document.getElementById('finput'+idx).click(); } }
-async function guardarServicio(eid) { const desc = document.getElementById('sDesc')?.value?.trim(); if(!desc){toast('⚠️ Ingresa el diagnóstico');return;} const tipo=document.getElementById('sTipo').value; const fecha=document.getElementById('sFecha').value; const prox=tipo==='Mantenimiento'?(document.getElementById('proxFecha')?.value||null):null; try{ await addDoc(collection(db,'servicios'),{equipoId:eid,tipo,fecha,tecnico:sesionActual?.nombre||'',descripcion:desc,proximoMantenimiento:prox,fotos:[]}); closeModal();await cargarDatos(); const e=getEq(eid);if(e)goTo('historial',e.clienteId,eid); toast('✅ Servicio guardado'); }catch(err){toast('❌ Error: '+err.message);} }
-function modalEditarServicio(sid) { const s = servicios.find(x=>x.id===sid); if (!s) return; _esidActual=sid; _fotosEditadas=[...(s.fotos||[])]; fotosNuevas[0]=fotosNuevas[1]=fotosNuevas[2]=null; showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Editar servicio</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><div class="fr"><div><label class="fl first">Tipo *</label><select class="fi" id="esTipo"><option ${s.tipo==='Mantenimiento'?'selected':''}>Mantenimiento</option><option ${s.tipo==='Reparación'?'selected':''}>Reparación</option><option ${s.tipo==='Instalación'?'selected':''}>Instalación</option></select></div><div><label class="fl first">Fecha *</label><input class="fi" type="date" id="esFecha" value="${s.fecha}"></div></div><label class="fl">Diagnóstico *</label><textarea class="fi" id="esDesc" rows="3">${s.descripcion}</textarea><label class="fl">Próximo mantenimiento</label><input class="fi" type="date" id="esProx" value="${s.proximoMantenimiento||''}"><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="actualizarServicio('${sid}')">Guardar cambios</button></div></div></div>`); }
+async function guardarServicio(eid) { const desc = document.getElementById('sDesc')?.value?.trim(); if(!desc){toast('⚠️ Ingresa el diagnostico');return;} const tipo=document.getElementById('sTipo').value; const fecha=document.getElementById('sFecha').value; const prox=tipo==='Mantenimiento'?(document.getElementById('proxFecha')?.value||null):null; try{ await addDoc(collection(db,'servicios'),{equipoId:eid,tipo,fecha,tecnico:sesionActual?.nombre||'',descripcion:desc,proximoMantenimiento:prox,fotos:[]}); closeModal();await cargarDatos(); const e=getEq(eid);if(e)goTo('historial',e.clienteId,eid); toast('✅ Servicio guardado'); }catch(err){toast('❌ Error: '+err.message);} }
+function modalEditarServicio(sid) { const s = servicios.find(x=>x.id===sid); if (!s) return; _esidActual=sid; _fotosEditadas=[...(s.fotos||[])]; fotosNuevas[0]=fotosNuevas[1]=fotosNuevas[2]=null; showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Editar servicio</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><div class="fr"><div><label class="fl first">Tipo *</label><select class="fi" id="esTipo"><option ${s.tipo==='Mantenimiento'?'selected':''}>Mantenimiento</option><option ${s.tipo==='Reparacion'?'selected':''}>Reparacion</option><option ${s.tipo==='Instalacion'?'selected':''}>Instalacion</option></select></div><div><label class="fl first">Fecha *</label><input class="fi" type="date" id="esFecha" value="${s.fecha}"></div></div><label class="fl">Diagnostico *</label><textarea class="fi" id="esDesc" rows="3">${s.descripcion}</textarea><label class="fl">Proximo mantenimiento</label><input class="fi" type="date" id="esProx" value="${s.proximoMantenimiento||''}"><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="actualizarServicio('${sid}')">Guardar cambios</button></div></div></div>`); }
 async function actualizarServicio(sid) { const tipo=document.getElementById('esTipo')?.value; const fecha=document.getElementById('esFecha')?.value; const desc=document.getElementById('esDesc')?.value?.trim(); const prox=document.getElementById('esProx')?.value||null; try{ await updateDoc(doc(db,'servicios',sid),{tipo,fecha,descripcion:desc||'',proximoMantenimiento:prox}); closeModal();await cargarDatos();toast('✅ Servicio actualizado'); }catch(err){toast('❌ Error: '+err.message);} }
-function modalEliminarServicio(sid) { const s = servicios.find(x=>x.id===sid); if (!s) return; showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Eliminar servicio</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><div class="confirm-box"><p>⚠️ ¿Eliminar este servicio del ${fmtFecha(s.fecha)}?</p></div><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-red" onclick="eliminarServicio('${sid}')">🗑️ Sí, eliminar</button></div></div></div>`); }
+function modalEliminarServicio(sid) { const s = servicios.find(x=>x.id===sid); if (!s) return; showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Eliminar servicio</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><div class="confirm-box"><p>⚠️ ¿Eliminar este servicio del ${fmtFecha(s.fecha)}?</p></div><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-red" onclick="eliminarServicio('${sid}')">🗑️ Si, eliminar</button></div></div></div>`); }
 async function eliminarServicio(sid) { if(!confirm('¿Eliminar este servicio?'))return; try{await deleteDoc(doc(db,'servicios',sid));await cargarDatos();toast('🗑️ Servicio eliminado');} catch(err){toast('❌ Error: '+err.message);} }
 
-function modalNuevoCliente() { showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Nuevo cliente</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><label class="fl first">Nombre / Empresa *</label><input class="fi" id="cNombre" placeholder="Ej: Empresa ABC SAS"><div class="fr"><div><label class="fl">Teléfono *</label><input class="fi" id="cTel" type="tel" placeholder="31XXXXXXXX"></div><div><label class="fl">Email</label><input class="fi" id="cEmail" type="email" placeholder="correo@..."></div></div><label class="fl">Ciudad *</label><select class="fi" id="cCiudad"><option value="">Seleccionar...</option>${CIUDADES.map(ci=>`<option>${ci}</option>`).join('')}</select><label class="fl">Dirección *</label><input class="fi" id="cDir" placeholder="Calle, carrera, barrio"><div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:0.65rem;margin-top:0.5rem;"><div style="font-size:0.82rem;font-weight:700;margin-bottom:6px;">📍 Ubicación GPS</div><button class="btn btn-blue btn-full" onclick="obtenerGPS()" style="min-height:46px;">Compartir ubicación actual</button><div id="gpsInfo" style="font-size:0.72rem;color:var(--hint);margin-top:4px;"></div><input type="hidden" id="cLat"><input type="hidden" id="cLng"></div><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="guardarCliente()">Guardar</button></div></div></div>`); }
-function obtenerGPS() { const btn = document.querySelector('[onclick="obtenerGPS()"]'); if (btn) btn.textContent='⏳ Obteniendo...'; if (!navigator.geolocation) { toast('⚠️ GPS no disponible'); return; } navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude.toFixed(6); const lng = pos.coords.longitude.toFixed(6); document.getElementById('cLat').value=lat; document.getElementById('cLng').value=lng; document.getElementById('gpsInfo').innerHTML=`✅ ${lat}, ${lng} · <a href="https://maps.google.com/?q=${lat},${lng}" target="_blank" style="color:var(--green);">Ver mapa</a>`; if(btn) btn.textContent='✅ Ubicación guardada'; }, ()=>{ toast('⚠️ No se pudo obtener GPS'); if(btn) btn.textContent='Compartir ubicación actual'; }); }
+function modalNuevoCliente() { showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Nuevo cliente</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><label class="fl first">Nombre / Empresa *</label><input class="fi" id="cNombre" placeholder="Ej: Empresa ABC SAS"><div class="fr"><div><label class="fl">Telefono *</label><input class="fi" id="cTel" type="tel" placeholder="31XXXXXXXX"></div><div><label class="fl">Email</label><input class="fi" id="cEmail" type="email" placeholder="correo@..."></div></div><label class="fl">Ciudad *</label><select class="fi" id="cCiudad"><option value="">Seleccionar...</option>${CIUDADES.map(ci=>`<option>${ci}</option>`).join('')}</select><label class="fl">Direccion *</label><input class="fi" id="cDir" placeholder="Calle, carrera, barrio"><div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:0.65rem;margin-top:0.5rem;"><div style="font-size:0.82rem;font-weight:700;margin-bottom:6px;">📍 Ubicacion GPS</div><button class="btn btn-blue btn-full" onclick="obtenerGPS()" style="min-height:46px;">Compartir ubicacion actual</button><div id="gpsInfo" style="font-size:0.72rem;color:var(--hint);margin-top:4px;"></div><input type="hidden" id="cLat"><input type="hidden" id="cLng"></div><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="guardarCliente()">Guardar</button></div></div></div>`); }
+function obtenerGPS() { const btn = document.querySelector('[onclick="obtenerGPS()"]'); if (btn) btn.textContent='⏳ Obteniendo...'; if (!navigator.geolocation) { toast('⚠️ GPS no disponible'); return; } navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude.toFixed(6); const lng = pos.coords.longitude.toFixed(6); document.getElementById('cLat').value=lat; document.getElementById('cLng').value=lng; document.getElementById('gpsInfo').innerHTML=`✅ ${lat}, ${lng} · <a href="https://maps.google.com/?q=${lat},${lng}" target="_blank" style="color:var(--green);">Ver mapa</a>`; if(btn) btn.textContent='✅ Ubicacion guardada'; }, ()=>{ toast('⚠️ No se pudo obtener GPS'); if(btn) btn.textContent='Compartir ubicacion actual'; }); }
 async function guardarCliente() { const n=document.getElementById('cNombre')?.value?.trim(); const t=document.getElementById('cTel')?.value?.trim(); const ci=document.getElementById('cCiudad')?.value; const d=document.getElementById('cDir')?.value?.trim(); if(!n||!t||!ci||!d){toast('⚠️ Complete los campos obligatorios (*)');return;} try{ await addDoc(collection(db,'clientes'),{nombre:n,telefono:t,ciudad:ci,direccion:d, email:document.getElementById('cEmail')?.value||'', latitud:document.getElementById('cLat')?.value||null, longitud:document.getElementById('cLng')?.value||null, fechaCreacion:new Date().toISOString().split('T')[0]}); closeModal();await cargarDatos();toast('✅ Cliente guardado'); }catch(err){toast('❌ Error: '+err.message);} }
-function modalEditarCliente(cid) { const c=getCl(cid); showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Editar cliente</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><label class="fl first">Nombre *</label><input class="fi" id="eNombre" value="${c.nombre}"><div class="fr"><div><label class="fl">Teléfono *</label><input class="fi" id="eTel" value="${c.telefono}" type="tel"></div><div><label class="fl">Email</label><input class="fi" id="eEmail" value="${c.email||''}"></div></div><label class="fl">Ciudad *</label><select class="fi" id="eCiudad">${CIUDADES.map(ci=>`<option ${ci===c.ciudad?'selected':''}>${ci}</option>`).join('')}</select><label class="fl">Dirección *</label><input class="fi" id="eDir" value="${c.direccion}"><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="actualizarCliente('${cid}')">Guardar cambios</button></div></div></div>`); }
+function modalEditarCliente(cid) { const c=getCl(cid); showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Editar cliente</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><label class="fl first">Nombre *</label><input class="fi" id="eNombre" value="${c.nombre}"><div class="fr"><div><label class="fl">Telefono *</label><input class="fi" id="eTel" value="${c.telefono}" type="tel"></div><div><label class="fl">Email</label><input class="fi" id="eEmail" value="${c.email||''}"></div></div><label class="fl">Ciudad *</label><select class="fi" id="eCiudad">${CIUDADES.map(ci=>`<option ${ci===c.ciudad?'selected':''}>${ci}</option>`).join('')}</select><label class="fl">Direccion *</label><input class="fi" id="eDir" value="${c.direccion}"><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="actualizarCliente('${cid}')">Guardar cambios</button></div></div></div>`); }
 async function actualizarCliente(cid) { try{ await updateDoc(doc(db,'clientes',cid),{ nombre:document.getElementById('eNombre').value, telefono:document.getElementById('eTel').value, email:document.getElementById('eEmail').value, ciudad:document.getElementById('eCiudad').value, direccion:document.getElementById('eDir').value}); closeModal();await cargarDatos();toast('✅ Cliente actualizado'); }catch(err){toast('❌ Error: '+err.message);} }
-function modalEliminarCliente(cid) { const c=getCl(cid); const eqs=getEquiposCliente(cid); const ss=getServiciosCliente(cid); showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Eliminar cliente</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><div class="confirm-box"><p>⚠️ ¿Eliminar <strong>${c.nombre}</strong>?</p><p style="margin-top:5px;">Se eliminarán también <strong>${eqs.length} activo(s)</strong> y <strong>${ss.length} servicio(s)</strong>.</p></div><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-red" onclick="eliminarCliente('${cid}')">🗑️ Sí, eliminar</button></div></div></div>`); }
+function modalEliminarCliente(cid) { const c=getCl(cid); const eqs=getEquiposCliente(cid); const ss=getServiciosCliente(cid); showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Eliminar cliente</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><div class="confirm-box"><p>⚠️ ¿Eliminar <strong>${c.nombre}</strong>?</p><p style="margin-top:5px;">Se eliminaran tambien <strong>${eqs.length} activo(s)</strong> y <strong>${ss.length} servicio(s)</strong>.</p></div><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-red" onclick="eliminarCliente('${cid}')">🗑️ Si, eliminar</button></div></div></div>`); }
 async function eliminarCliente(cid) { const eids=getEquiposCliente(cid).map(e=>e.id); try{ await Promise.all([ ...servicios.filter(s=>eids.includes(s.equipoId)).map(s=>deleteDoc(doc(db,'servicios',s.id))), ...eids.map(id=>deleteDoc(doc(db,'equipos',id))), deleteDoc(doc(db,'clientes',cid)) ]); closeModal();goTo('clientes');await cargarDatos();toast('🗑️ Cliente eliminado'); }catch(err){toast('❌ Error: '+err.message);} }
 
-function modalNuevoEquipo(cid) { showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Nuevo activo</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><div class="fr"><div><label class="fl first">Marca *</label><input class="fi" id="qMarca" placeholder="ABB, Siemens..."></div><div><label class="fl first">Modelo *</label><input class="fi" id="qModelo" placeholder="TX-400..."></div></div><label class="fl">N° de serie</label><input class="fi" id="qSerie" placeholder="Opcional"><label class="fl">Ubicación *</label><input class="fi" id="qUbic" placeholder="Ej: Sala eléctrica principal"><label class="fl">Tipo de activo</label><input class="fi" id="qTipo" placeholder="Transformador, Planta eléctrica..."><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="guardarEquipo('${cid}')">Guardar</button></div></div></div>`); }
-async function guardarEquipo(cid) { const m=document.getElementById('qMarca')?.value?.trim(); const mo=document.getElementById('qModelo')?.value?.trim(); const se=document.getElementById('qSerie')?.value?.trim(); const u=document.getElementById('qUbic')?.value?.trim(); const ti=document.getElementById('qTipo')?.value?.trim(); if(!m||!mo||!u){toast('⚠️ Complete marca, modelo y ubicación');return;} try{ await addDoc(collection(db,'equipos'),{clienteId:cid,marca:m,modelo:mo,serie:se||'',ubicacion:u,tipo:ti||''}); closeModal();await cargarDatos();toast('✅ Activo guardado'); }catch(err){toast('❌ Error: '+err.message);} }
-function modalEditarEquipo(eid) { const eq=getEq(eid); if(!eq) return; showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Editar activo</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><div class="fr"><div><label class="fl first">Marca *</label><input class="fi" id="eMarca" value="${eq.marca}"></div><div><label class="fl first">Modelo *</label><input class="fi" id="eModelo" value="${eq.modelo}"></div></div><label class="fl">N° de serie</label><input class="fi" id="eSerie" value="${eq.serie||''}"><label class="fl">Ubicación *</label><input class="fi" id="eUbic" value="${eq.ubicacion}"><label class="fl">Tipo de activo</label><input class="fi" id="eTipoEq" value="${eq.tipo||''}"><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="actualizarEquipo('${eid}')">Guardar cambios</button></div></div></div>`); }
+function modalNuevoEquipo(cid) { showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Nuevo activo</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><div class="fr"><div><label class="fl first">Marca *</label><input class="fi" id="qMarca" placeholder="ABB, Siemens..."></div><div><label class="fl first">Modelo *</label><input class="fi" id="qModelo" placeholder="TX-400..."></div></div><label class="fl">N° de serie</label><input class="fi" id="qSerie" placeholder="Opcional"><label class="fl">Ubicacion *</label><input class="fi" id="qUbic" placeholder="Ej: Sala electrica principal"><label class="fl">Tipo de activo</label><input class="fi" id="qTipo" placeholder="Transformador, Planta electrica..."><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="guardarEquipo('${cid}')">Guardar</button></div></div></div>`); }
+async function guardarEquipo(cid) { const m=document.getElementById('qMarca')?.value?.trim(); const mo=document.getElementById('qModelo')?.value?.trim(); const se=document.getElementById('qSerie')?.value?.trim(); const u=document.getElementById('qUbic')?.value?.trim(); const ti=document.getElementById('qTipo')?.value?.trim(); if(!m||!mo||!u){toast('⚠️ Complete marca, modelo y ubicacion');return;} try{ await addDoc(collection(db,'equipos'),{clienteId:cid,marca:m,modelo:mo,serie:se||'',ubicacion:u,tipo:ti||''}); closeModal();await cargarDatos();toast('✅ Activo guardado'); }catch(err){toast('❌ Error: '+err.message);} }
+function modalEditarEquipo(eid) { const eq=getEq(eid); if(!eq) return; showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Editar activo</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><div class="fr"><div><label class="fl first">Marca *</label><input class="fi" id="eMarca" value="${eq.marca}"></div><div><label class="fl first">Modelo *</label><input class="fi" id="eModelo" value="${eq.modelo}"></div></div><label class="fl">N° de serie</label><input class="fi" id="eSerie" value="${eq.serie||''}"><label class="fl">Ubicacion *</label><input class="fi" id="eUbic" value="${eq.ubicacion}"><label class="fl">Tipo de activo</label><input class="fi" id="eTipoEq" value="${eq.tipo||''}"><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="actualizarEquipo('${eid}')">Guardar cambios</button></div></div></div>`); }
 async function actualizarEquipo(eid) { try{ await updateDoc(doc(db,'equipos',eid),{ marca:document.getElementById('eMarca').value, modelo:document.getElementById('eModelo').value, serie:document.getElementById('eSerie').value, ubicacion:document.getElementById('eUbic').value, tipo:document.getElementById('eTipoEq').value}); closeModal();await cargarDatos();toast('✅ Activo actualizado'); }catch(err){toast('❌ Error: '+err.message);} }
-function modalEliminarEquipo(eid) { const eq=getEq(eid); if(!eq) return; const ss=getServiciosEquipo(eid); showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Eliminar activo</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><div class="confirm-box"><p>⚠️ ¿Eliminar <strong>${eq.marca} ${eq.modelo}</strong>?</p><p style="margin-top:5px;">Se eliminarán también <strong>${ss.length} servicio(s)</strong>.</p></div><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-red" onclick="eliminarEquipo('${eid}')">🗑️ Sí, eliminar</button></div></div></div>`); }
+function modalEliminarEquipo(eid) { const eq=getEq(eid); if(!eq) return; const ss=getServiciosEquipo(eid); showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Eliminar activo</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><div class="confirm-box"><p>⚠️ ¿Eliminar <strong>${eq.marca} ${eq.modelo}</strong>?</p><p style="margin-top:5px;">Se eliminaran tambien <strong>${ss.length} servicio(s)</strong>.</p></div><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-red" onclick="eliminarEquipo('${eid}')">🗑️ Si, eliminar</button></div></div></div>`); }
 async function eliminarEquipo(eid) { const eq=getEq(eid); try{ await Promise.all([ ...servicios.filter(s=>s.equipoId===eid).map(s=>deleteDoc(doc(db,'servicios',s.id))), deleteDoc(doc(db,'equipos',eid)) ]); closeModal();await cargarDatos();goTo('detalle',eq?.clienteId||selectedClienteId);toast('🗑️ Activo eliminado'); }catch(err){toast('❌ Error: '+err.message);} }
 
-function modalNuevoTecnico() { showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Nuevo técnico</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><label class="fl first">Nombre completo *</label><input class="fi" id="tNombre" placeholder="Nombre Apellido"><div class="fr"><div><label class="fl">Tipo doc *</label><select class="fi" id="tTipoDoc">${TIPOS_DOC.map(d=>`<option>${d}</option>`).join('')}</select></div><div><label class="fl">N° documento *</label><input class="fi" id="tCedula" placeholder="00000000" type="number"></div></div><label class="fl">Teléfono *</label><input class="fi" id="tTel" type="tel" placeholder="31XXXXXXXX"><label class="fl">Cargo *</label><input class="fi" id="tCargo" placeholder="Técnico de Campo..."><label class="fl">Rol *</label><select class="fi" id="tRol"><option value="tecnico">Técnico</option><option value="admin">Admin</option></select><label class="fl">Especialidades *</label><div id="tEspContainer">${ESPECIALIDADES.map(e=>`<div class="esp-option" id="esp_${e.id}" onclick="toggleEsp('${e.id}')"><div class="esp-cb" id="ecb_${e.id}"></div><span class="esp-lbl">${e.label}</span></div>`).join('')}</div><label class="fl">Región que atiende</label><input class="fi" id="tRegion" placeholder="Bogotá, Cundinamarca..."><div class="fr" style="margin-top:6px;"><div><label class="fl first">Clave (4 dígitos) *</label><input class="fi" id="tClave" type="password" maxlength="4" placeholder="••••"></div><div><label class="fl first">Confirmar clave *</label><input class="fi" id="tClave2" type="password" maxlength="4" placeholder="••••"></div></div><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="guardarTecnico()">Guardar</button></div></div></div>`); window._espSel = []; }
+function modalNuevoTecnico() { showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Nuevo tecnico</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><label class="fl first">Nombre completo *</label><input class="fi" id="tNombre" placeholder="Nombre Apellido"><div class="fr"><div><label class="fl">Tipo doc *</label><select class="fi" id="tTipoDoc">${TIPOS_DOC.map(d=>`<option>${d}</option>`).join('')}</select></div><div><label class="fl">N° documento *</label><input class="fi" id="tCedula" placeholder="00000000" type="number"></div></div><label class="fl">Telefono *</label><input class="fi" id="tTel" type="tel" placeholder="31XXXXXXXX"><label class="fl">Cargo *</label><input class="fi" id="tCargo" placeholder="Tecnico de Campo..."><label class="fl">Rol *</label><select class="fi" id="tRol"><option value="tecnico">Tecnico</option><option value="admin">Admin</option></select><label class="fl">Especialidades *</label><div id="tEspContainer">${ESPECIALIDADES.map(e=>`<div class="esp-option" id="esp_${e.id}" onclick="toggleEsp('${e.id}')"><div class="esp-cb" id="ecb_${e.id}"></div><span class="esp-lbl">${e.label}</span></div>`).join('')}</div><label class="fl">Region que atiende</label><input class="fi" id="tRegion" placeholder="Bogota, Cundinamarca..."><div class="fr" style="margin-top:6px;"><div><label class="fl first">Clave (4 digitos) *</label><input class="fi" id="tClave" type="password" maxlength="4" placeholder="••••"></div><div><label class="fl first">Confirmar clave *</label><input class="fi" id="tClave2" type="password" maxlength="4" placeholder="••••"></div></div><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="guardarTecnico()">Guardar</button></div></div></div>`); window._espSel = []; }
 function toggleEsp(id) { window._espSel = window._espSel||[]; const idx = window._espSel.indexOf(id); if(idx>=0) window._espSel.splice(idx,1); else window._espSel.push(id); const el = document.getElementById('esp_'+id); const cb = document.getElementById('ecb_'+id); if(el) el.classList.toggle('selected', window._espSel.includes(id)); if(cb) cb.classList.toggle('on', window._espSel.includes(id)); }
-async function guardarTecnico() { const n=document.getElementById('tNombre')?.value?.trim(); const cc=document.getElementById('tCedula')?.value?.trim(); const cl=document.getElementById('tClave')?.value?.trim(); const tel=document.getElementById('tTel')?.value?.trim(); const car=document.getElementById('tCargo')?.value?.trim(); const rol=document.getElementById('tRol')?.value||'tecnico'; const reg=document.getElementById('tRegion')?.value?.trim(); const esps=window._espSel||[]; if(!n||!cc||!cl){toast('⚠️ Nombre, cédula y clave obligatorios');return;} if(cl.length!==4){toast('⚠️ Clave de 4 dígitos');return;} if(tecnicos.find(t=>t.cedula===cc)){toast('⚠️ Cédula ya existe');return;} try{ await addDoc(collection(db,'tecnicos'),{nombre:n,cedula:cc, tipoDoc:document.getElementById('tTipoDoc')?.value||'CC', telefono:tel||'',cargo:car||'',rol,especialidades:esps,region:reg||'',clave:cl}); closeModal();await cargarDatos();toast('✅ Técnico guardado'); }catch(err){toast('❌ Error: '+err.message);} }
-function modalEditarTecnico(tid) { const t=getTec(tid); showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Editar técnico</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><label class="fl first">Nombre *</label><input class="fi" id="etNombre" value="${t.nombre}"><div class="fr"><div><label class="fl">Tipo doc</label><select class="fi" id="etTipoDoc">${TIPOS_DOC.map(d=>`<option ${d===t.tipoDoc?'selected':''}>${d}</option>`).join('')}</select></div><div><label class="fl">N° documento</label><input class="fi" id="etCedula" value="${t.cedula}"></div></div><label class="fl">Teléfono</label><input class="fi" id="etTel" value="${t.telefono}" type="tel"><label class="fl">Cargo</label><input class="fi" id="etCargo" value="${t.cargo||''}"><label class="fl">Rol</label><select class="fi" id="etRol"><option value="tecnico" ${t.rol==='tecnico'?'selected':''}>Técnico</option><option value="admin" ${t.rol==='admin'?'selected':''}>Admin</option></select><label class="fl">Especialidades</label><div id="etEspContainer">${ESPECIALIDADES.map(e=>`<div class="esp-option ${(t.especialidades||[]).includes(e.id)?'selected':''}" id="etesp_${e.id}" onclick="toggleEspEdit('${e.id}','${tid}')"><div class="esp-cb ${(t.especialidades||[]).includes(e.id)?'on':''}" id="etecb_${e.id}"></div><span class="esp-lbl">${e.label}</span></div>`).join('')}</div><label class="fl">Región</label><input class="fi" id="etRegion" value="${t.region||''}"><label class="fl">Nueva clave (dejar vacío para no cambiar)</label><div class="fr"><div><input class="fi" id="etClave" type="password" maxlength="4" placeholder="••••"></div><div><input class="fi" id="etClave2" type="password" maxlength="4" placeholder="Confirmar"></div></div><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="actualizarTecnico('${tid}')">Guardar cambios</button></div></div></div>`); window._espSelEdit = [...(t.especialidades||[])]; }
+async function guardarTecnico() { const n=document.getElementById('tNombre')?.value?.trim(); const cc=document.getElementById('tCedula')?.value?.trim(); const cl=document.getElementById('tClave')?.value?.trim(); const tel=document.getElementById('tTel')?.value?.trim(); const car=document.getElementById('tCargo')?.value?.trim(); const rol=document.getElementById('tRol')?.value||'tecnico'; const reg=document.getElementById('tRegion')?.value?.trim(); const esps=window._espSel||[]; if(!n||!cc||!cl){toast('⚠️ Nombre, cedula y clave obligatorios');return;} if(cl.length!==4){toast('⚠️ Clave de 4 digitos');return;} if(tecnicos.find(t=>t.cedula===cc)){toast('⚠️ Cedula ya existe');return;} try{ await addDoc(collection(db,'tecnicos'),{nombre:n,cedula:cc, tipoDoc:document.getElementById('tTipoDoc')?.value||'CC', telefono:tel||'',cargo:car||'',rol,especialidades:esps,region:reg||'',clave:cl}); closeModal();await cargarDatos();toast('✅ Tecnico guardado'); }catch(err){toast('❌ Error: '+err.message);} }
+function modalEditarTecnico(tid) { const t=getTec(tid); showModal(`<div class="modal" onclick="event.stopPropagation()"><div class="modal-h"><h3>Editar tecnico</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><label class="fl first">Nombre *</label><input class="fi" id="etNombre" value="${t.nombre}"><div class="fr"><div><label class="fl">Tipo doc</label><select class="fi" id="etTipoDoc">${TIPOS_DOC.map(d=>`<option ${d===t.tipoDoc?'selected':''}>${d}</option>`).join('')}</select></div><div><label class="fl">N° documento</label><input class="fi" id="etCedula" value="${t.cedula}"></div></div><label class="fl">Telefono</label><input class="fi" id="etTel" value="${t.telefono}" type="tel"><label class="fl">Cargo</label><input class="fi" id="etCargo" value="${t.cargo||''}"><label class="fl">Rol</label><select class="fi" id="etRol"><option value="tecnico" ${t.rol==='tecnico'?'selected':''}>Tecnico</option><option value="admin" ${t.rol==='admin'?'selected':''}>Admin</option></select><label class="fl">Especialidades</label><div id="etEspContainer">${ESPECIALIDADES.map(e=>`<div class="esp-option ${(t.especialidades||[]).includes(e.id)?'selected':''}" id="etesp_${e.id}" onclick="toggleEspEdit('${e.id}','${tid}')"><div class="esp-cb ${(t.especialidades||[]).includes(e.id)?'on':''}" id="etecb_${e.id}"></div><span class="esp-lbl">${e.label}</span></div>`).join('')}</div><label class="fl">Region</label><input class="fi" id="etRegion" value="${t.region||''}"><label class="fl">Nueva clave (dejar vacio para no cambiar)</label><div class="fr"><div><input class="fi" id="etClave" type="password" maxlength="4" placeholder="••••"></div><div><input class="fi" id="etClave2" type="password" maxlength="4" placeholder="Confirmar"></div></div><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="actualizarTecnico('${tid}')">Guardar cambios</button></div></div></div>`); window._espSelEdit = [...(t.especialidades||[])]; }
 function toggleEspEdit(id) { window._espSelEdit = window._espSelEdit||[]; const idx=window._espSelEdit.indexOf(id); if(idx>=0) window._espSelEdit.splice(idx,1); else window._espSelEdit.push(id); const el=document.getElementById('etesp_'+id); const cb=document.getElementById('etecb_'+id); if(el) el.classList.toggle('selected',window._espSelEdit.includes(id)); if(cb) cb.classList.toggle('on',window._espSelEdit.includes(id)); }
-async function actualizarTecnico(tid) { const cl=document.getElementById('etClave')?.value?.trim(); const data={nombre:document.getElementById('etNombre').value, telefono:document.getElementById('etTel').value, cargo:document.getElementById('etCargo').value, rol:document.getElementById('etRol')?.value||'tecnico', region:document.getElementById('etRegion').value, especialidades:window._espSelEdit||[]}; if(cl&&cl.length===4)data.clave=cl; try{ await updateDoc(doc(db,'tecnicos',tid),data); closeModal();await cargarDatos();toast('✅ Técnico actualizado'); }catch(err){toast('❌ Error: '+err.message);} }
-async function eliminarTecnico(tid) { if(!confirm('¿Eliminar este técnico?'))return; try{await deleteDoc(doc(db,'tecnicos',tid));await cargarDatos();toast('🗑️ Técnico eliminado');} catch(err){toast('❌ Error: '+err.message);} }
+async function actualizarTecnico(tid) { const cl=document.getElementById('etClave')?.value?.trim(); const data={nombre:document.getElementById('etNombre').value, telefono:document.getElementById('etTel').value, cargo:document.getElementById('etCargo').value, rol:document.getElementById('etRol')?.value||'tecnico', region:document.getElementById('etRegion').value, especialidades:window._espSelEdit||[]}; if(cl&&cl.length===4)data.clave=cl; try{ await updateDoc(doc(db,'tecnicos',tid),data); closeModal();await cargarDatos();toast('✅ Tecnico actualizado'); }catch(err){toast('❌ Error: '+err.message);} }
+async function eliminarTecnico(tid) { if(!confirm('¿Eliminar este tecnico?'))return; try{await deleteDoc(doc(db,'tecnicos',tid));await cargarDatos();toast('🗑️ Tecnico eliminado');} catch(err){toast('❌ Error: '+err.message);} }
 
-function generarInformePDF(eid) { const e=getEq(eid); const c=getCl(e?.clienteId); const ss=getServiciosEquipo(eid).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)); const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Informe_${e?.marca}_${e?.modelo}</title><style>@page{size:A4;margin:1.5cm 2cm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:12px;color:#1e293b;margin:0}.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #0d4a3a;padding-bottom:10px;margin-bottom:12px}.brand{font-size:1.1rem;font-weight:700;color:#0d4a3a;letter-spacing:1px}.brand-sub{font-size:9px;color:#c9a227;font-weight:700}.contact{text-align:right;font-size:10px;color:#475569;line-height:1.6}.title{font-size:1rem;font-weight:700;color:#0d4a3a;text-align:center;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}.info-section{background:#f8fafc;border-radius:6px;padding:10px;margin-bottom:12px}.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}.info-item{font-size:11px}.info-item strong{color:#0f172a}.servicio{border:0.5px solid #e2e8f0;border-radius:6px;padding:10px;margin-bottom:12px;page-break-inside:avoid}.serv-header{display:flex;justify-content:space-between;margin-bottom:6px}.tipo-badge{background:#d1ede0;color:#0d4a3a;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}.tipo-badge.rep{background:#fee2e2;color:#dc2626}.tipo-badge.inst{background:#dcfce7;color:#16a34a}.footer{text-align:center;font-size:9px;color:#94a3b8;margin-top:20px;border-top:0.5px solid #e2e8f0;padding-top:6px}</style></head><body><div class="hdr"><div><div class="brand">OLM INGENIERÍA SAS</div><div class="brand-sub">PLANTAS Y SISTEMAS ELÉCTRICOS</div></div><div class="contact">Bogotá · NIT 901.050.468-5<br>📞 311 4831801<br>Oscar Leonardo Martínez</div></div><div class="title">Informe Técnico</div><div class="info-section"><div class="info-grid"><div class="info-item"><strong>Cliente:</strong> ${c?.nombre||'N/A'}</div><div class="info-item"><strong>Teléfono:</strong> ${c?.telefono||'N/A'}</div><div class="info-item"><strong>Dirección:</strong> ${c?.direccion||'N/A'}</div><div class="info-item"><strong>Ciudad:</strong> ${c?.ciudad||'N/A'}</div><div class="info-item"><strong>Activo:</strong> ${e?.marca||''} ${e?.modelo||''}</div><div class="info-item"><strong>Serie:</strong> ${e?.serie||'N/A'}</div><div class="info-item"><strong>Ubicación:</strong> ${e?.ubicacion||'N/A'}</div><div class="info-item"><strong>Servicios:</strong> ${ss.length}</div></div></div>${ss.map(s=>`<div class="servicio"><div class="serv-header"><span class="tipo-badge ${s.tipo==='Reparación'?'rep':s.tipo==='Instalación'?'inst':''}">${s.tipo}</span><span style="font-size:11px;color:#64748b;">${fmtFechaLarga(s.fecha)}</span></div><p style="margin:3px 0;font-size:11px;"><strong>Técnico:</strong> ${s.tecnico}</p><p style="margin:3px 0;font-size:11px;"><strong>Descripción:</strong> ${s.descripcion}</p>${s.proximoMantenimiento?`<p style="margin:3px 0;font-size:11px;color:#c9a227;"><strong>📅 Próximo:</strong> ${fmtFechaLarga(s.proximoMantenimiento)}</p>`:''}</div>`).join('')}<div class="footer">OLM Ingeniería SAS · Sistema de Gestión de Plantas y Sistemas Eléctricos · ${new Date().toLocaleDateString('es-ES')}</div></body></html>`; const v=window.open('','_blank'); v.document.write(html); v.document.close(); v.onload = () => { v.focus(); v.print(); }; setTimeout(() => { try { v.focus(); v.print(); } catch(e){} }, 800); toast('🖨️ Selecciona "Guardar como PDF" en la impresora'); }
+function generarInformePDF(eid) { const e=getEq(eid); const c=getCl(e?.clienteId); const ss=getServiciosEquipo(eid).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)); const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Informe_${e?.marca}_${e?.modelo}</title><style>@page{size:A4;margin:1.5cm 2cm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:12px;color:#1e293b;margin:0}.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #0d4a3a;padding-bottom:10px;margin-bottom:12px}.brand{font-size:1.1rem;font-weight:700;color:#0d4a3a;letter-spacing:1px}.brand-sub{font-size:9px;color:#c9a227;font-weight:700}.contact{text-align:right;font-size:10px;color:#475569;line-height:1.6}.title{font-size:1rem;font-weight:700;color:#0d4a3a;text-align:center;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}.info-section{background:#f8fafc;border-radius:6px;padding:10px;margin-bottom:12px}.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}.info-item{font-size:11px}.info-item strong{color:#0f172a}.servicio{border:0.5px solid #e2e8f0;border-radius:6px;padding:10px;margin-bottom:12px;page-break-inside:avoid}.serv-header{display:flex;justify-content:space-between;margin-bottom:6px}.tipo-badge{background:#d1ede0;color:#0d4a3a;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}.tipo-badge.rep{background:#fee2e2;color:#dc2626}.tipo-badge.inst{background:#dcfce7;color:#16a34a}.footer{text-align:center;font-size:9px;color:#94a3b8;margin-top:20px;border-top:0.5px solid #e2e8f0;padding-top:6px}</style></head><body><div class="hdr"><div><div class="brand">OLM INGENIERIA SAS</div><div class="brand-sub">PLANTAS Y SISTEMAS ELECTRICOS</div></div><div class="contact">Bogota · NIT 901.050.468-5<br>📞 311 4831801<br>Oscar Leonardo Martinez</div></div><div class="title">Informe Tecnico</div><div class="info-section"><div class="info-grid"><div class="info-item"><strong>Cliente:</strong> ${c?.nombre||'N/A'}</div><div class="info-item"><strong>Telefono:</strong> ${c?.telefono||'N/A'}</div><div class="info-item"><strong>Direccion:</strong> ${c?.direccion||'N/A'}</div><div class="info-item"><strong>Ciudad:</strong> ${c?.ciudad||'N/A'}</div><div class="info-item"><strong>Activo:</strong> ${e?.marca||''} ${e?.modelo||''}</div><div class="info-item"><strong>Serie:</strong> ${e?.serie||'N/A'}</div><div class="info-item"><strong>Ubicacion:</strong> ${e?.ubicacion||'N/A'}</div><div class="info-item"><strong>Servicios:</strong> ${ss.length}</div></div></div>${ss.map(s=>`<div class="servicio"><div class="serv-header"><span class="tipo-badge ${s.tipo==='Reparacion'?'rep':s.tipo==='Instalacion'?'inst':''}">${s.tipo}</span><span style="font-size:11px;color:#64748b;">${fmtFechaLarga(s.fecha)}</span></div><p style="margin:3px 0;font-size:11px;"><strong>Tecnico:</strong> ${s.tecnico}</p><p style="margin:3px 0;font-size:11px;"><strong>Descripcion:</strong> ${s.descripcion}</p>${s.proximoMantenimiento?`<p style="margin:3px 0;font-size:11px;color:#c9a227;"><strong>📅 Proximo:</strong> ${fmtFechaLarga(s.proximoMantenimiento)}</p>`:''}</div>`).join('')}<div class="footer">OLM Ingenieria SAS · Sistema de Gestion de Plantas y Sistemas Electricos · ${new Date().toLocaleDateString('es-ES')}</div></body></html>`; const v=window.open('','_blank'); v.document.write(html); v.document.close(); v.onload = () => { v.focus(); v.print(); }; setTimeout(() => { try { v.focus(); v.print(); } catch(e){} }, 800); toast('🖨️ Selecciona "Guardar como PDF" en la impresora'); }
 
-function modalQR(eid) { const e=getEq(eid); const c=getCl(e?.clienteId); const url=`${window.location.origin}${window.location.pathname}#/equipo/${eid}`; const qrDiv=document.createElement('div'); qrDiv.style.cssText='position:fixed;top:-9999px;left:-9999px;width:260px;height:260px;'; document.body.appendChild(qrDiv); const QRLib=window.QRCode; if(!QRLib){toast('⚠️ Recarga la página');document.body.removeChild(qrDiv);return;} new QRLib(qrDiv,{text:url,width:260,height:260,colorDark:'#0d4a3a',colorLight:'#ffffff',correctLevel:QRLib.CorrectLevel.M}); setTimeout(()=>{ const qrCanvas=qrDiv.querySelector('canvas'); const W=380,H=560; const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const ctx=cv.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H); ctx.strokeStyle='#0d4a3a'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(24,10); ctx.lineTo(W-24,10); ctx.quadraticCurveTo(W-10,10,W-10,24); ctx.lineTo(W-10,H-24); ctx.quadraticCurveTo(W-10,H-10,W-24,H-10); ctx.lineTo(24,H-10); ctx.quadraticCurveTo(10,H-10,10,H-24); ctx.lineTo(10,24); ctx.quadraticCurveTo(10,10,24,10); ctx.closePath(); ctx.stroke(); ctx.fillStyle='#0d4a3a'; ctx.beginPath(); ctx.moveTo(W/2-105+8,18); ctx.lineTo(W/2+105-8,18); ctx.quadraticCurveTo(W/2+105,18,W/2+105,26); ctx.lineTo(W/2+105,76); ctx.lineTo(W/2-105,76); ctx.lineTo(W/2-105,26); ctx.quadraticCurveTo(W/2-105,18,W/2-105+8,18); ctx.closePath(); ctx.fill(); ctx.fillStyle='#c9a227'; ctx.font='bold 20px Arial,sans-serif'; ctx.textAlign='center'; ctx.fillText('OLM INGENIERÍA SAS',W/2,48); ctx.fillStyle='#a5c9bb'; ctx.font='10px Arial,sans-serif'; ctx.fillText('Plantas y Sistemas Eléctricos · Bogotá',W/2,66); ctx.fillStyle='#0f172a'; ctx.font='bold 14px Arial,sans-serif'; ctx.fillText(`${e?.marca||''} ${e?.modelo||''}`,W/2,98); ctx.fillStyle='#64748b'; ctx.font='11px Arial,sans-serif'; ctx.fillText(`📍 ${e?.ubicacion||''}`,W/2,116); if(c?.nombre) { ctx.fillStyle='#94a3b8'; ctx.font='10px Arial,sans-serif'; ctx.fillText(`👤 ${c.nombre}`,W/2,132); } if(qrCanvas) ctx.drawImage(qrCanvas,(W-230)/2,142,230,230); ctx.fillStyle='#94a3b8'; ctx.font='7px Arial,sans-serif'; const mid=Math.floor(url.length/2); ctx.fillText(url.slice(0,mid),W/2,384); ctx.fillText(url.slice(mid),W/2,394); ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(28,406); ctx.lineTo(W-28,406); ctx.stroke(); ctx.fillStyle='#0d4a3a'; ctx.font='bold 30px Arial,sans-serif'; ctx.fillText('311 483 1801',W/2,450); ctx.fillStyle='#94a3b8'; ctx.font='10px Arial,sans-serif'; ctx.fillText('📞 Línea de soporte OLM Ingeniería',W/2,468); ctx.fillStyle='#cbd5e1'; ctx.font='8px Arial,sans-serif'; ctx.fillText('OLM Ingeniería SAS · Sistema de Gestión de Plantas y Sistemas Eléctricos',W/2,520); document.body.removeChild(qrDiv); const dataUrl=cv.toDataURL('image/png'); showModal(`<div class="modal" onclick="event.stopPropagation()" style="max-width:340px;"><div class="modal-h"><h3>📱 Código QR</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b" style="text-align:center;"><img src="${dataUrl}" style="width:100%;border-radius:8px;margin-bottom:1rem;" alt="QR"><div style="display:flex;flex-direction:column;gap:8px;"><a href="${dataUrl}" download="QR_${(e?.marca||'')}_${(e?.modelo||'')}.png" class="btn btn-blue btn-full" style="text-decoration:none;display:block;padding:0.6rem;border-radius:10px;">⬇️ Descargar imagen</a><button class="btn btn-gray btn-full" onclick="closeModal()">Cerrar</button></div></div></div>`); },200); }
+function modalQR(eid) { const e=getEq(eid); const c=getCl(e?.clienteId); const url=`${window.location.origin}${window.location.pathname}#/equipo/${eid}`; const qrDiv=document.createElement('div'); qrDiv.style.cssText='position:fixed;top:-9999px;left:-9999px;width:260px;height:260px;'; document.body.appendChild(qrDiv); const QRLib=window.QRCode; if(!QRLib){toast('⚠️ Recarga la pagina');document.body.removeChild(qrDiv);return;} new QRLib(qrDiv,{text:url,width:260,height:260,colorDark:'#0d4a3a',colorLight:'#ffffff',correctLevel:QRLib.CorrectLevel.M}); setTimeout(()=>{ const qrCanvas=qrDiv.querySelector('canvas'); const W=380,H=560; const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const ctx=cv.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H); ctx.strokeStyle='#0d4a3a'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(24,10); ctx.lineTo(W-24,10); ctx.quadraticCurveTo(W-10,10,W-10,24); ctx.lineTo(W-10,H-24); ctx.quadraticCurveTo(W-10,H-10,W-24,H-10); ctx.lineTo(24,H-10); ctx.quadraticCurveTo(10,H-10,10,H-24); ctx.lineTo(10,24); ctx.quadraticCurveTo(10,10,24,10); ctx.closePath(); ctx.stroke(); ctx.fillStyle='#0d4a3a'; ctx.beginPath(); ctx.moveTo(W/2-105+8,18); ctx.lineTo(W/2+105-8,18); ctx.quadraticCurveTo(W/2+105,18,W/2+105,26); ctx.lineTo(W/2+105,76); ctx.lineTo(W/2-105,76); ctx.lineTo(W/2-105,26); ctx.quadraticCurveTo(W/2-105,18,W/2-105+8,18); ctx.closePath(); ctx.fill(); ctx.fillStyle='#c9a227'; ctx.font='bold 20px Arial,sans-serif'; ctx.textAlign='center'; ctx.fillText('OLM INGENIERIA SAS',W/2,48); ctx.fillStyle='#a5c9bb'; ctx.font='10px Arial,sans-serif'; ctx.fillText('Plantas y Sistemas Electricos · Bogota',W/2,66); ctx.fillStyle='#0f172a'; ctx.font='bold 14px Arial,sans-serif'; ctx.fillText(`${e?.marca||''} ${e?.modelo||''}`,W/2,98); ctx.fillStyle='#64748b'; ctx.font='11px Arial,sans-serif'; ctx.fillText(`📍 ${e?.ubicacion||''}`,W/2,116); if(c?.nombre) { ctx.fillStyle='#94a3b8'; ctx.font='10px Arial,sans-serif'; ctx.fillText(`👤 ${c.nombre}`,W/2,132); } if(qrCanvas) ctx.drawImage(qrCanvas,(W-230)/2,142,230,230); ctx.fillStyle='#94a3b8'; ctx.font='7px Arial,sans-serif'; const mid=Math.floor(url.length/2); ctx.fillText(url.slice(0,mid),W/2,384); ctx.fillText(url.slice(mid),W/2,394); ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(28,406); ctx.lineTo(W-28,406); ctx.stroke(); ctx.fillStyle='#0d4a3a'; ctx.font='bold 30px Arial,sans-serif'; ctx.fillText('311 483 1801',W/2,450); ctx.fillStyle='#94a3b8'; ctx.font='10px Arial,sans-serif'; ctx.fillText('📞 Linea de soporte OLM Ingenieria',W/2,468); ctx.fillStyle='#cbd5e1'; ctx.font='8px Arial,sans-serif'; ctx.fillText('OLM Ingenieria SAS · Sistema de Gestion de Plantas y Sistemas Electricos',W/2,520); document.body.removeChild(qrDiv); const dataUrl=cv.toDataURL('image/png'); showModal(`<div class="modal" onclick="event.stopPropagation()" style="max-width:340px;"><div class="modal-h"><h3>📱 Codigo QR</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b" style="text-align:center;"><img src="${dataUrl}" style="width:100%;border-radius:8px;margin-bottom:1rem;" alt="QR"><div style="display:flex;flex-direction:column;gap:8px;"><a href="${dataUrl}" download="QR_${(e?.marca||'')}_${(e?.modelo||'')}.png" class="btn btn-blue btn-full" style="text-decoration:none;display:block;padding:0.6rem;border-radius:10px;">⬇️ Descargar imagen</a><button class="btn btn-gray btn-full" onclick="closeModal()">Cerrar</button></div></div></div>`); },200); }
 
-function manejarRutaQR() { const hash=window.location.hash; if(!hash.startsWith('#/equipo/')) return false; const eid=hash.replace('#/equipo/',''); const e=getEq(eid); if(!e) return false; const c=getCl(e.clienteId); const ss=getServiciosEquipo(eid).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)); const main=document.getElementById('mainContent'); const topbar=document.querySelector('.topbar'); const botnav=document.querySelector('.botnav'); if(topbar) topbar.style.display='none'; if(botnav) botnav.style.display='none'; main.style.background='white'; main.innerHTML=`<div style="max-width:600px;margin:0 auto;padding:1.5rem;"><div style="text-align:center;margin-bottom:1.5rem;"><img src="OLM_LOGO.png" style="max-height:65px;max-width:200px;object-fit:contain;margin-bottom:8px;" alt="OLM" onerror="this.parentElement.innerHTML+='<div style=font-size:1.2rem;font-weight:700;color:#0d4a3a;>OLM INGENIERÍA SAS</div>'"><div style="font-size:0.72rem;color:#64748b;">Bogotá · 📞 311 4831801</div></div><div style="background:#0d4a3a;border-radius:14px;padding:14px;text-align:center;margin-bottom:16px;"><div style="font-size:0.78rem;color:#a5c9bb;margin-bottom:4px;">¿Necesitas soporte? Llámanos</div><div style="font-size:2rem;font-weight:700;color:white;letter-spacing:2px;">311 483 1801</div><div style="font-size:0.78rem;color:#c9a227;margin-top:4px;font-weight:600;">OLM Ingeniería SAS · Bogotá</div></div><div style="border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;margin-bottom:1rem;background:#f8fafc;"><div style="font-size:1rem;font-weight:700;">⚡ ${e.marca} ${e.modelo}</div><div style="font-size:0.82rem;color:#475569;margin-top:3px;">📍 ${e.ubicacion}</div><div style="font-size:0.78rem;color:#475569;">👤 ${c?.nombre}</div><div style="font-size:0.75rem;color:#94a3b8;margin-top:2px;">Serie: ${e.serie||'N/A'}</div></div><div style="margin-bottom:1rem;"><button style="width:100%;background:#25D366;color:white;border:none;padding:14px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;" onclick="window.open('https://wa.me/573114831801?text=${encodeURIComponent('Hola OLM Ingeniería, soy cliente de ' + (c?.nombre||'') + ' y tengo una novedad con el activo ' + (e?.marca||'') + ' ' + (e?.modelo||'') + ' ubicado en ' + (e?.ubicacion||'') + '. ¿Podrían apoyarme?')}','_blank')"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Contactar por WhatsApp</button></div><div style="font-size:0.88rem;font-weight:700;margin-bottom:0.75rem;">Historial de servicios (${ss.length})</div>${ss.map(s=>`<div style="border:0.5px solid #d1ede0;border-radius:10px;padding:0.85rem;margin-bottom:0.65rem;background:white;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="background:#d1ede0;color:#0d4a3a;padding:2px 8px;border-radius:20px;font-size:0.72rem;font-weight:600;">${s.tipo}</span><span style="font-size:0.75rem;color:#94a3b8;">${fmtFecha(s.fecha)}</span></div><div style="font-size:0.82rem;color:#475569;">🔧 ${s.tecnico}</div><div style="font-size:0.8rem;color:#64748b;margin-top:2px;">${s.descripcion}</div>${s.proximoMantenimiento?`<div style="font-size:0.75rem;color:#c9a227;margin-top:3px;">📅 Próximo: ${fmtFecha(s.proximoMantenimiento)}</div>`:''}</div>`).join('')}<div style="text-align:center;font-size:0.7rem;color:#94a3b8;margin-top:1rem;padding-top:0.75rem;border-top:0.5px solid #e2e8f0;">OLM Ingeniería SAS · Sistema de Gestión de Plantas y Sistemas Eléctricos</div></div>`; return true; }
+function manejarRutaQR() { const hash=window.location.hash; if(!hash.startsWith('#/equipo/')) return false; const eid=hash.replace('#/equipo/',''); const e=getEq(eid); if(!e) return false; const c=getCl(e.clienteId); const ss=getServiciosEquipo(eid).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)); const main=document.getElementById('mainContent'); const topbar=document.querySelector('.topbar'); const botnav=document.querySelector('.botnav'); if(topbar) topbar.style.display='none'; if(botnav) botnav.style.display='none'; main.style.background='white'; main.innerHTML=`<div style="max-width:600px;margin:0 auto;padding:1.5rem;"><div style="text-align:center;margin-bottom:1.5rem;"><img src="OLM_LOGO.png" style="max-height:65px;max-width:200px;object-fit:contain;margin-bottom:8px;" alt="OLM" onerror="this.parentElement.innerHTML+='<div style=font-size:1.2rem;font-weight:700;color:#0d4a3a;>OLM INGENIERIA SAS</div>'"><div style="font-size:0.72rem;color:#64748b;">Bogota · 📞 311 4831801</div></div><div style="background:#0d4a3a;border-radius:14px;padding:14px;text-align:center;margin-bottom:16px;"><div style="font-size:0.78rem;color:#a5c9bb;margin-bottom:4px;">¿Necesitas soporte? Llamanos</div><div style="font-size:2rem;font-weight:700;color:white;letter-spacing:2px;">311 483 1801</div><div style="font-size:0.78rem;color:#c9a227;margin-top:4px;font-weight:600;">OLM Ingenieria SAS · Bogota</div></div><div style="border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;margin-bottom:1rem;background:#f8fafc;"><div style="font-size:1rem;font-weight:700;">⚡ ${e.marca} ${e.modelo}</div><div style="font-size:0.82rem;color:#475569;margin-top:3px;">📍 ${e.ubicacion}</div><div style="font-size:0.78rem;color:#475569;">👤 ${c?.nombre}</div><div style="font-size:0.75rem;color:#94a3b8;margin-top:2px;">Serie: ${e.serie||'N/A'}</div></div><div style="margin-bottom:1rem;"><button style="width:100%;background:#25D366;color:white;border:none;padding:14px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;" onclick="window.open('https://wa.me/573114831801?text=${encodeURIComponent('Hola OLM Ingenieria, soy cliente de ' + (c?.nombre||'') + ' y tengo una novedad con el activo ' + (e?.marca||'') + ' ' + (e?.modelo||'') + ' ubicado en ' + (e?.ubicacion||'') + '. ¿Podrian apoyarme?')}','_blank')"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Contactar por WhatsApp</button></div><div style="font-size:0.88rem;font-weight:700;margin-bottom:0.75rem;">Historial de servicios (${ss.length})</div>${ss.map(s=>`<div style="border:0.5px solid #d1ede0;border-radius:10px;padding:0.85rem;margin-bottom:0.65rem;background:white;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="background:#d1ede0;color:#0d4a3a;padding:2px 8px;border-radius:20px;font-size:0.72rem;font-weight:600;">${s.tipo}</span><span style="font-size:0.75rem;color:#94a3b8;">${fmtFecha(s.fecha)}</span></div><div style="font-size:0.82rem;color:#475569;">🔧 ${s.tecnico}</div><div style="font-size:0.8rem;color:#64748b;margin-top:2px;">${s.descripcion}</div>${s.proximoMantenimiento?`<div style="font-size:0.75rem;color:#c9a227;margin-top:3px;">📅 Proximo: ${fmtFecha(s.proximoMantenimiento)}</div>`:''}</div>`).join('')}<div style="text-align:center;font-size:0.7rem;color:#94a3b8;margin-top:1rem;padding-top:0.75rem;border-top:0.5px solid #e2e8f0;">OLM Ingenieria SAS · Sistema de Gestion de Plantas y Sistemas Electricos</div></div>`; return true; }
 
 window.goTo=goTo; window.closeModal=closeModal; window.filtrarClientes=filtrarClientes; window.filtrarEquipos=filtrarEquipos; window.aplicarFiltros=aplicarFiltros; window.limpiarFiltros=limpiarFiltros; window.modalNuevoCliente=modalNuevoCliente; window.modalEditarCliente=modalEditarCliente; window.modalEliminarCliente=modalEliminarCliente; window.guardarCliente=guardarCliente; window.actualizarCliente=actualizarCliente; window.eliminarCliente=eliminarCliente; window.modalNuevoEquipo=modalNuevoEquipo; window.guardarEquipo=guardarEquipo; window.modalEditarEquipo=modalEditarEquipo; window.actualizarEquipo=actualizarEquipo; window.modalEliminarEquipo=modalEliminarEquipo; window.eliminarEquipo=eliminarEquipo; window.modalNuevoServicio=modalNuevoServicio; window.guardarServicio=guardarServicio; window.modalEditarServicio=modalEditarServicio; window.actualizarServicio=actualizarServicio; window.eliminarServicio=eliminarServicio; window.modalNuevoTecnico=modalNuevoTecnico; window.guardarTecnico=guardarTecnico; window.modalEditarTecnico=modalEditarTecnico; window.actualizarTecnico=actualizarTecnico; window.eliminarTecnico=eliminarTecnico; window.modalRecordar=modalRecordar; window.enviarWhatsApp=enviarWhatsApp; window.modalInformeJMC=modalInformeJMC; window.limpiarFirmaJMC=limpiarFirmaJMC; window.exportarInformeJMC=exportarInformeJMC; window.subirCSVJMC=subirCSVJMC; window.descargarPlantillaCSV=descargarPlantillaCSV; window.generarInformePDF=generarInformePDF; window.modalQR=modalQR; window.obtenerGPS=obtenerGPS; window.previewFoto=previewFoto; window.borrarFoto=borrarFoto; window.onTipoChange=onTipoChange; window.doLogin=doLogin; window.pinPress=pinPress; window.pinDel=pinDel; window.resetPin=resetPin; window.abrirLogin=abrirLogin; window.mlPin=mlPin; window.mlDel=mlDel; window.mlLogin=mlLogin; window.cerrarSesion=cerrarSesion; window.toggleEsp=toggleEsp; window.toggleEspEdit=toggleEspEdit;
 
-document.querySelectorAll('.bni').forEach(btn => { btn.addEventListener('click', () => { const page = btn.dataset.page; if (!sesionActual && page !== 'panel' && page !== 'tecnicos') { toast('🔒 Inicia sesión desde Técnicos'); return; } selectedClienteId = null; selectedEquipoId = null; goTo(page); }); });
+document.querySelectorAll('.bni').forEach(btn => { btn.addEventListener('click', () => { const page = btn.dataset.page; if (!sesionActual && page !== 'panel' && page !== 'tecnicos') { toast('🔒 Inicia sesion desde Tecnicos'); return; } selectedClienteId = null; selectedEquipoId = null; goTo(page); }); });
 
 window.conectarDrive = conectarDrive;
 (async () => { await sembrarDatos(); await cargarDatos(); if (!manejarRutaQR()) renderView(); })();
