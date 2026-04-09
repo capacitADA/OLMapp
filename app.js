@@ -1,10 +1,8 @@
 // ============================================
 // OLM INGENIERÍA SAS - APP Firebase
-// Con Drive PDF y CSV persistente en Firestore
 // ============================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, writeBatch }
-    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBpW1ZLMZkpjbsBWiCRA3W15DHO2x-1aTE",
@@ -52,17 +50,17 @@ async function driveUploadPDF(html, filename) {
         const result = await response.json();
         return result.success === true;
     } catch(e) {
-        console.error(e);
+        console.error('Error Drive:', e);
         return false;
     }
 }
 
 // ===== DATOS GLOBALES =====
 let clientes = [], equipos = [], servicios = [], tecnicos = [];
-let jmcTiendas = [];      // Tiendas cargadas desde Firestore
+let jmcTiendas = [];
 let jmcTiendasVersion = '';
 
-// ===== CARGAR DATOS DESDE FIRESTORE =====
+// ===== CARGAR DATOS =====
 async function cargarDatos() {
     const main = document.getElementById('mainContent');
     main.innerHTML = '<div class="loading-screen"><div class="loading-spinner"></div><p>Cargando...</p></div>';
@@ -172,13 +170,11 @@ async function subirCSVJMC(input) {
         
         if (!nuevas.length) { toast('⚠️ No se encontraron tiendas'); return; }
         
-        // Eliminar todas las tiendas actuales en Firestore
         const snapshot = await getDocs(collection(db, 'jmc_tiendas'));
         const batch = writeBatch(db);
         snapshot.forEach(doc => batch.delete(doc.ref));
         await batch.commit();
         
-        // Guardar nuevas tiendas
         for (const tienda of nuevas) {
             await addDoc(collection(db, 'jmc_tiendas'), tienda);
         }
@@ -188,7 +184,7 @@ async function subirCSVJMC(input) {
         jmcTiendasVersion = version;
         input.value = '';
         renderView();
-        toast(`✅ ${nuevas.length} tiendas guardadas en base de datos`);
+        toast(`✅ ${nuevas.length} tiendas guardadas`);
     };
     reader.readAsText(file, 'UTF-8');
 }
@@ -262,7 +258,6 @@ function closeModal() {
     fotosNuevas = [null, null, null];
 }
 
-// ===== TOPBAR SIN BOTÓN DRIVE =====
 function actualizarTopbar() {
     const right = document.getElementById('topbarRight');
     if (!right) return;
@@ -571,7 +566,7 @@ function renderMantenimientos() {
                             <td>${c?.nombre||'N/A'}<\/td>
                             <td>${e?`${e.marca} ${e.modelo}`:'N/A'}<\/td>
                             <td><button class="rec-btn" onclick="modalRecordar('${e?.clienteId}','${e?.id}','${m.proximoMantenimiento}')">📱<\/button><\/td>
-                        </tr>`;
+                        </td>`;
                     }).join('');
                 }).join('')}
                 </tbody>
@@ -657,7 +652,7 @@ function enviarWhatsApp(tel) {
     toast('📱 WhatsApp abierto');
 }
 
-// ===== NUEVO SERVICIO CON FOTOS =====
+// ===== NUEVO SERVICIO =====
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -801,7 +796,7 @@ async function eliminarServicio(sid) {
     catch(err) { toast('❌ Error: ' + err.message); }
 }
 
-// ===== MODAL INFORME JMC CON DRIVE PDF =====
+// ===== MODAL INFORME JMC =====
 function modalInformeJMC(eid) {
     const e = getEq(eid);
     const hoy = new Date().toISOString().split('T')[0];
@@ -880,7 +875,6 @@ async function exportarInformeJMC(eid) {
     const fechaArch = dd && mm && aa ? `${dd}-${mm}-${aa}` : new Date().toISOString().split('T')[0];
     const nombreArch = `TK_${ticket || 'sin-ticket'}_SAP_${sap || 'sin-sap'}_${fechaArch}`;
     
-    // Obtener el coordinador actual de la tienda
     const tiendaActual = getTiendaJMC(sap);
     const coordinadorActual = tiendaActual ? tiendaActual.coordinador : document.getElementById('jNombreSol')?.value || '';
     
@@ -907,10 +901,10 @@ async function exportarInformeJMC(eid) {
     if (guardado) {
         toast('✅ Informe guardado en Drive como PDF');
     } else {
-        toast('⚠️ No se pudo guardar en Drive, pero se abrirá para impresión');
+        toast('⚠️ No se pudo guardar en Drive');
     }
     
-    // Abrir para impresión (respaldo)
+    // Abrir para impresión
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const ventana = window.open(url, '_blank');
@@ -918,7 +912,6 @@ async function exportarInformeJMC(eid) {
         ventana.onload = () => { ventana.print(); };
     }
     
-    // Cerrar modal y volver
     closeModal();
     setTimeout(() => {
         if (_servicioEidActual) {
@@ -927,7 +920,7 @@ async function exportarInformeJMC(eid) {
     }, 500);
 }
 
-// ===== CRUD CLIENTES, EQUIPOS, TECNICOS =====
+// ===== CRUD CLIENTES =====
 function modalNuevoCliente() {
     showModal(`<div class="modal"><div class="modal-h"><h3>Nuevo cliente</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><label class="fl">Nombre *</label><input class="fi" id="cNombre"><label class="fl">Telefono *</label><input class="fi" id="cTel" type="tel"><label class="fl">Email</label><input class="fi" id="cEmail"><label class="fl">Ciudad *</label><select class="fi" id="cCiudad">${CIUDADES.map(ci=>`<option>${ci}</option>`).join('')}</select><label class="fl">Direccion *</label><input class="fi" id="cDir"><button class="btn btn-blue btn-full" onclick="obtenerGPS()">📍 Compartir ubicacion</button><input type="hidden" id="cLat"><input type="hidden" id="cLng"><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="guardarCliente()">Guardar</button></div></div></div>`);
 }
@@ -1001,6 +994,7 @@ async function eliminarCliente(cid) {
     } catch(err) { toast('❌ Error: ' + err.message); }
 }
 
+// ===== CRUD EQUIPOS =====
 function modalNuevoEquipo(cid) {
     showModal(`<div class="modal"><div class="modal-h"><h3>Nuevo activo</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><div class="fr"><div><label class="fl">Marca *</label><input class="fi" id="qMarca"></div><div><label class="fl">Modelo *</label><input class="fi" id="qModelo"></div></div><label class="fl">Serie</label><input class="fi" id="qSerie"><label class="fl">Ubicacion *</label><input class="fi" id="qUbic"><label class="fl">Tipo</label><input class="fi" id="qTipo"><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="guardarEquipo('${cid}')">Guardar</button></div></div></div>`);
 }
@@ -1058,6 +1052,7 @@ async function eliminarEquipo(eid) {
     } catch(err) { toast('❌ Error: ' + err.message); }
 }
 
+// ===== CRUD TECNICOS =====
 function modalNuevoTecnico() {
     showModal(`<div class="modal"><div class="modal-h"><h3>Nuevo tecnico</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><label class="fl">Nombre *</label><input class="fi" id="tNombre"><div class="fr"><div><label class="fl">Tipo Doc</label><select class="fi" id="tTipoDoc">${TIPOS_DOC.map(d=>`<option>${d}</option>`).join('')}</select></div><div><label class="fl">Cedula *</label><input class="fi" id="tCedula" type="number"></div></div><label class="fl">Telefono</label><input class="fi" id="tTel"><label class="fl">Cargo</label><input class="fi" id="tCargo"><label class="fl">Rol</label><select class="fi" id="tRol"><option value="tecnico">Tecnico</option><option value="admin">Admin</option></select><label class="fl">Clave (4 digitos) *</label><input class="fi" id="tClave" type="password" maxlength="4"><div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="guardarTecnico()">Guardar</button></div></div></div>`);
 }
@@ -1117,11 +1112,12 @@ async function eliminarTecnico(tid) {
     } catch(err) { toast('❌ Error: ' + err.message); }
 }
 
+// ===== OTRAS FUNCIONES =====
 function generarInformePDF(eid) {
     const e = getEq(eid);
     const c = getCl(e?.clienteId);
     const ss = getServiciosEquipo(eid).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe_${e?.marca}_${e?.modelo}</title><style>body{font-family:Arial;padding:20px;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #ccc;padding:8px;}</style></head><body><h1>OLM INGENIERIA SAS</h1><h2>Informe Tecnico</h2><p><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</p><p><strong>Activo:</strong> ${e?.marca} ${e?.modelo} - Serie: ${e?.serie || 'N/A'}</p><p><strong>Ubicacion:</strong> ${e?.ubicacion || 'N/A'}</p><h3>Historial de Servicios</h3><table><tr><th>Fecha</th><th>Tipo</th><th>Tecnico</th><th>Descripcion</th></tr>${ss.map(s => `<tr><td>${fmtFecha(s.fecha)}</td><td>${s.tipo}</td><td>${s.tecnico}</td><td>${s.descripcion}</td></tr>`).join('')}</table><p>Total de servicios: ${ss.length}</p><p>Generado: ${new Date().toLocaleString()}</p></body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe_${e?.marca}_${e?.modelo}</title><style>body{font-family:Arial;padding:20px;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #ccc;padding:8px;}</style></head><body><h1>OLM INGENIERIA SAS</h1><h2>Informe Tecnico</h2><p><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</p><p><strong>Activo:</strong> ${e?.marca} ${e?.modelo} - Serie: ${e?.serie || 'N/A'}</p><p><strong>Ubicacion:</strong> ${e?.ubicacion || 'N/A'}</p><h3>Historial de Servicios</h3><table border="1"><tr><th>Fecha</th><th>Tipo</th><th>Tecnico</th><th>Descripcion</th></tr>${ss.map(s => `<tr><td>${fmtFecha(s.fecha)}</td><td>${s.tipo}</td><td>${s.tecnico}</td><td>${s.descripcion}</td></tr>`).join('')}</table><p>Total de servicios: ${ss.length}</p><p>Generado: ${new Date().toLocaleString()}</p></body></html>`;
     const v = window.open('', '_blank');
     v.document.write(html);
     v.document.close();
