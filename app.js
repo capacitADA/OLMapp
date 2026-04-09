@@ -1,6 +1,6 @@
 // ============================================
 // OLM INGENIERÍA SAS - APP Firebase
-// Con Drive automático (sin botón molesto)
+// Con Drive automático y persistencia de datos
 // ============================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy }
@@ -181,6 +181,7 @@ let selectedClienteId = null;
 let selectedEquipoId = null;
 let fotosNuevas = [null, null, null];
 let _servicioEidActual = null;
+let _servicioDatosGuardados = null; // Guardar datos del servicio antes de abrir informe
 
 // ===== HELPERS =====
 const getEq = id => equipos.find(e => e.id === id);
@@ -653,6 +654,55 @@ function fileToBase64(file) {
     });
 }
 
+function guardarDatosServicioAntesDeInforme() {
+    // Guardar los datos actuales del servicio antes de abrir el informe
+    _servicioDatosGuardados = {
+        tipo: document.getElementById('sTipo')?.value,
+        fecha: document.getElementById('sFecha')?.value,
+        descripcion: document.getElementById('sDesc')?.value,
+        proximoMantenimiento: document.getElementById('proxFecha')?.value,
+        fotos: [...fotosNuevas]
+    };
+}
+
+function restaurarDatosServicio() {
+    if (_servicioDatosGuardados) {
+        if (_servicioDatosGuardados.tipo) {
+            const tipoSelect = document.getElementById('sTipo');
+            if (tipoSelect) tipoSelect.value = _servicioDatosGuardados.tipo;
+        }
+        if (_servicioDatosGuardados.fecha) {
+            const fechaInput = document.getElementById('sFecha');
+            if (fechaInput) fechaInput.value = _servicioDatosGuardados.fecha;
+        }
+        if (_servicioDatosGuardados.descripcion) {
+            const descInput = document.getElementById('sDesc');
+            if (descInput) descInput.value = _servicioDatosGuardados.descripcion;
+        }
+        if (_servicioDatosGuardados.proximoMantenimiento) {
+            const proxInput = document.getElementById('proxFecha');
+            if (proxInput) proxInput.value = _servicioDatosGuardados.proximoMantenimiento;
+        }
+        if (_servicioDatosGuardados.fotos) {
+            fotosNuevas = [..._servicioDatosGuardados.fotos];
+            // Actualizar la vista de fotos
+            for (let i = 0; i < fotosNuevas.length; i++) {
+                if (fotosNuevas[i]) {
+                    const slot = document.getElementById('fslot' + i);
+                    if (slot && fotosNuevas[i] instanceof File) {
+                        const reader = new FileReader();
+                        reader.onload = e => {
+                            if (slot) slot.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;"><button class="fslot-del" onclick="borrarFoto(event,${i})">✕</button><input type="file" id="finput${i}" accept="image/*" style="display:none" onchange="previewFoto(this,${i})">`;
+                        };
+                        reader.readAsDataURL(fotosNuevas[i]);
+                    }
+                }
+            }
+        }
+        onTipoChange();
+    }
+}
+
 async function guardarServicio(eid) {
     const desc = document.getElementById('sDesc')?.value?.trim();
     if(!desc){ toast('⚠️ Ingresa el diagnostico'); return; }
@@ -727,6 +777,7 @@ function modalNuevoServicio(eid) {
     const tiendaJMC = sapActual ? getTiendaJMC(sapActual) : null;
     
     _servicioEidActual = eid;
+    _servicioDatosGuardados = null; // Limpiar datos guardados anteriores
     
     showModal(`<div class="modal" onclick="event.stopPropagation()">
         <div class="modal-h"><h3>Nuevo servicio</h3><button class="xbtn" onclick="closeModal()">✕</button></div>
@@ -742,7 +793,7 @@ function modalNuevoServicio(eid) {
             </div>
             <label class="fl">Tecnico</label>
             <input class="fi" id="sTecnico" value="${sesionActual?.nombre||''}" readonly>
-            ${esJMC ? `<div style="background:#f5f3ff;border-radius:10px;padding:0.65rem;margin-top:0.65rem;display:flex;justify-content:space-between;align-items:center;"><span style="color:#5b21b6;">📋 Informe tecnico Jeronimo Martins</span><button class="btn btn-sm" style="background:#7c3aed;color:white;" onclick="modalInformeJMC('${eid}')">Abrir</button></div>` : ''}
+            ${esJMC ? `<div style="background:#f5f3ff;border-radius:10px;padding:0.65rem;margin-top:0.65rem;display:flex;justify-content:space-between;align-items:center;"><span style="color:#5b21b6;">📋 Informe tecnico Jeronimo Martins</span><button class="btn btn-sm" style="background:#7c3aed;color:white;" onclick="guardarDatosServicioAntesDeInforme(); modalInformeJMC('${eid}')">Abrir</button></div>` : ''}
             <label class="fl">Diagnostico / Descripcion *</label>
             <textarea class="fi" id="sDesc" rows="3" placeholder="Trabajo realizado..."></textarea>
             <div class="mant-box hidden" id="mantBox">
@@ -760,6 +811,11 @@ function modalNuevoServicio(eid) {
         </div>
     </div>`);
     onTipoChange();
+    
+    // Restaurar datos si había
+    if (_servicioDatosGuardados) {
+        setTimeout(() => restaurarDatosServicio(), 100);
+    }
 }
 
 function modalEditarServicio(sid) {
@@ -795,7 +851,7 @@ function modalInformeJMC(eid) {
     const tienda = getTiendaJMC(sapActual);
     const dd = hoy.split('-')[2], mm = hoy.split('-')[1], aa = hoy.split('-')[0].slice(2);
 
-    showModal(`<div class="modal modal-wide"><div class="modal-h" style="background:#1e3a6e;"><h3>📋 Informe Jeronimo Martins — FF-JMC-DT-06</h3><button class="xbtn" onclick="closeModal()">✕</button></div>
+    showModal(`<div class="modal modal-wide"><div class="modal-h" style="background:#1e3a6e;"><h3>📋 Informe Jeronimo Martins — FF-JMC-DT-06</h3><button class="xbtn" onclick="cerrarInformeYVolver()">✕</button></div>
         <div class="modal-b">
             <div style="background:#0d4a3a;color:white;text-align:center;padding:4px;margin-bottom:6px;border-radius:4px;">CONTRATISTA</div>
             <div class="fr"><div><label class="fl">Razon social</label><input class="fi" value="OLM INGENIERIA SAS" readonly></div><div><label class="fl">NIT</label><input class="fi" value="901.050.468-5" readonly></div></div>
@@ -826,10 +882,20 @@ function modalInformeJMC(eid) {
             <label class="fl">Firma</label>
             <canvas id="jFirmaCanvas" width="300" height="80" style="width:100%;height:80px;border:1.5px dashed var(--green);border-radius:8px;background:#f0faf5;"></canvas>
             <button class="btn btn-gray btn-sm" onclick="limpiarFirmaJMC()">🗑 Limpiar firma</button>
-            <div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="exportarInformeJMC('${eid}')">📄 Exportar PDF</button></div>
+            <div class="modal-foot"><button class="btn btn-gray" onclick="cerrarInformeYVolver()">Cancelar</button><button class="btn btn-blue" onclick="exportarInformeJMC('${eid}')">📄 Exportar PDF</button></div>
         </div>
     </div>`);
     setTimeout(() => iniciarFirmaCanvas('jFirmaCanvas'), 100);
+}
+
+function cerrarInformeYVolver() {
+    closeModal();
+    // Volver al formulario de nuevo servicio
+    setTimeout(() => {
+        if (_servicioEidActual) {
+            modalNuevoServicio(_servicioEidActual);
+        }
+    }, 100);
 }
 
 function iniciarFirmaCanvas(canvasId) {
@@ -886,7 +952,7 @@ async function exportarInformeJMC(eid) {
     // Abrir el PDF en nueva ventana
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     const blobUrl = URL.createObjectURL(blob);
-    const v = window.open(blobUrl, '_blank');
+    window.open(blobUrl, '_blank');
     
     // Subir a Drive si está conectado
     if (driveIsConnected()) {
@@ -897,10 +963,10 @@ async function exportarInformeJMC(eid) {
             toast('⚠️ No se pudo guardar en Drive, pero el PDF se abrió');
         }
     } else {
-        toast('📄 PDF generado. Conecta Drive para guardar automáticamente');
+        toast('📄 PDF generado');
     }
     
-    // Cerrar el modal del informe y volver al servicio
+    // Cerrar el modal del informe y volver al servicio (NO cerrar el servicio)
     closeModal();
     setTimeout(() => {
         if (_servicioEidActual) {
@@ -1103,7 +1169,7 @@ function generarInformePDF(eid) {
     const e = getEq(eid);
     const c = getCl(e?.clienteId);
     const ss = getServiciosEquipo(eid).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe_${e?.marca}_${e?.modelo}</title><style>body{font-family:Arial;padding:20px;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #ccc;padding:8px;}</style></head><body><h1>OLM INGENIERIA SAS</h1><h2>Informe Tecnico</h2><p><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</p><p><strong>Activo:</strong> ${e?.marca} ${e?.modelo} - Serie: ${e?.serie || 'N/A'}</p><p><strong>Ubicacion:</strong> ${e?.ubicacion || 'N/A'}</p><h3>Historial de Servicios</h3><table><tr><th>Fecha</th><th>Tipo</th><th>Tecnico</th><th>Descripcion</th></tr>${ss.map(s => `<tr><td>${fmtFecha(s.fecha)}</td><td>${s.tipo}</td><td>${s.tecnico}</td><td>${s.descripcion}</td></tr>`).join('')}</table><p>Total de servicios: ${ss.length}</p><p>Generado: ${new Date().toLocaleString()}</p></body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe_${e?.marca}_${e?.modelo}</title><style>body{font-family:Arial;padding:20px;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #ccc;padding:8px;}</style></head><body><h1>OLM INGENIERIA SAS</h1><h2>Informe Tecnico</h2><p><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</p><p><strong>Activo:</strong> ${e?.marca} ${e?.modelo} - Serie: ${e?.serie || 'N/A'}</p><p><strong>Ubicacion:</strong> ${e?.ubicacion || 'N/A'}</p><h3>Historial de Servicios</h3><tr><tr><th>Fecha</th><th>Tipo</th><th>Tecnico</th><th>Descripcion</th></tr>${ss.map(s => `<tr><td>${fmtFecha(s.fecha)}</td><td>${s.tipo}</td><td>${s.tecnico}</td><td>${s.descripcion}</td></tr>`).join('')}</table><p>Total de servicios: ${ss.length}</p><p>Generado: ${new Date().toLocaleString()}</p></body></html>`;
     const v = window.open('', '_blank');
     v.document.write(html);
     v.document.close();
@@ -1182,6 +1248,8 @@ window.mlPin = mlPin;
 window.mlDel = mlDel;
 window.mlLogin = mlLogin;
 window.cerrarSesion = cerrarSesion;
+window.guardarDatosServicioAntesDeInforme = guardarDatosServicioAntesDeInforme;
+window.cerrarInformeYVolver = cerrarInformeYVolver;
 
 document.querySelectorAll('.bni').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1198,7 +1266,7 @@ document.querySelectorAll('.bni').forEach(btn => {
 
 // Iniciar la app
 (async () => {
-    await conectarDriveAuto();  // Conexión automática a Drive
+    await conectarDriveAuto();  // Conexión automática a Drive (silenciosa)
     await sembrarDatos();
     await cargarDatos();
     if (!manejarRutaQR()) renderView();
