@@ -1,9 +1,9 @@
 // ============================================
 // OLM INGENIERÍA SAS - APP Firebase
-// Con Drive automático y persistencia de datos
+// Con Drive PDF y CSV persistente en Firestore
 // ============================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy }
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, writeBatch }
     from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -20,74 +20,69 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJkD-Vx0H6VtGI
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 
-// ===== DRIVE VÍA APPS SCRIPT (automático, sin botón) =====
+// ===== DRIVE =====
 let _driveConnected = false;
 
 function driveIsConnected() { return _driveConnected; }
 
 async function conectarDriveAuto() {
     try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'GET',
-            mode: 'cors'
-        });
+        const response = await fetch(APPS_SCRIPT_URL, { method: 'GET', mode: 'cors' });
         const text = await response.text();
         if (text.includes('OK')) {
             _driveConnected = true;
-            console.log('✅ Drive conectado automáticamente');
-        } else {
-            throw new Error('Respuesta inválida');
+            console.log('✅ Drive conectado');
         }
     } catch (e) {
-        console.log('⚠️ Drive no disponible, los PDFs solo se descargarán localmente');
+        console.log('⚠️ Drive no disponible');
         _driveConnected = false;
     }
 }
 
-async function driveUploadHTML(html, name) {
-    if (!_driveConnected) {
-        console.log('Drive no conectado, omitiendo subida');
-        return false;
-    }
+async function driveUploadPDF(html, filename) {
+    if (!_driveConnected) return false;
+    if (!filename.endsWith('.pdf')) filename = filename.replace('.html', '') + '.pdf';
     
     try {
         const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ html: html, filename: name })
+            body: JSON.stringify({ html: html, filename: filename })
         });
         const result = await response.json();
-        if (result.success) {
-            console.log('✅ PDF guardado en Drive:', result.fileName);
-            return true;
-        } else {
-            console.error('Error del script:', result.error);
-            return false;
-        }
+        return result.success === true;
     } catch(e) {
-        console.error('Error en fetch:', e);
+        console.error(e);
         return false;
     }
 }
 
-// ===== DATOS =====
+// ===== DATOS GLOBALES =====
 let clientes = [], equipos = [], servicios = [], tecnicos = [];
+let jmcTiendas = [];      // Tiendas cargadas desde Firestore
+let jmcTiendasVersion = '';
 
+// ===== CARGAR DATOS DESDE FIRESTORE =====
 async function cargarDatos() {
     const main = document.getElementById('mainContent');
     main.innerHTML = '<div class="loading-screen"><div class="loading-spinner"></div><p>Cargando...</p></div>';
     try {
-        const [cs, es, ss, ts] = await Promise.all([
+        const [cs, es, ss, ts, jmc] = await Promise.all([
             getDocs(query(collection(db, 'clientes'), orderBy('nombre'))),
             getDocs(collection(db, 'equipos')),
             getDocs(query(collection(db, 'servicios'), orderBy('fecha', 'desc'))),
-            getDocs(collection(db, 'tecnicos'))
+            getDocs(collection(db, 'tecnicos')),
+            getDocs(collection(db, 'jmc_tiendas'))
         ]);
         clientes = cs.docs.map(d => ({ id: d.id, ...d.data() }));
         equipos = es.docs.map(d => ({ id: d.id, ...d.data() }));
         servicios = ss.docs.map(d => ({ id: d.id, ...d.data() }));
         tecnicos = ts.docs.map(d => ({ id: d.id, ...d.data() }));
+        jmcTiendas = jmc.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        if (jmcTiendas.length > 0 && jmcTiendas[0].version) {
+            jmcTiendasVersion = jmcTiendas[0].version;
+        }
     } catch (err) {
         console.error('Error:', err);
         toast('⚠️ Error de conexión');
@@ -97,6 +92,7 @@ async function cargarDatos() {
     renderView();
 }
 
+// ===== SEMBRAR DATOS INICIALES =====
 async function sembrarDatos() {
     const snap = await getDocs(collection(db, 'tecnicos'));
     if (!snap.empty) return;
@@ -113,23 +109,13 @@ async function sembrarDatos() {
         fechaCreacion: new Date().toISOString().split('T')[0]
     });
     
-    const eRef = await addDoc(collection(db, 'equipos'), {
+    await addDoc(collection(db, 'equipos'), {
         clienteId: cRef.id,
         marca: 'Copeland',
         modelo: 'CR-400',
         serie: 'CP-2024-00891',
         ubicacion: '893',
         tipo: 'Compresor industrial'
-    });
-    
-    await addDoc(collection(db, 'servicios'), {
-        equipoId: eRef.id,
-        tipo: 'Mantenimiento',
-        fecha: new Date().toISOString().split('T')[0],
-        tecnico: 'Oscar Leonardo Martinez',
-        descripcion: 'Revision general del compresor. Sistema optimo.',
-        proximoMantenimiento: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        fotos: []
     });
     
     await addDoc(collection(db, 'tecnicos'), {
@@ -159,29 +145,77 @@ async function sembrarDatos() {
     toast('✅ Listo. Cedula: 0000001 · Clave: 1234');
 }
 
-const CIUDADES = ['Bogota', 'Medellin', 'Cali', 'Bucaramanga', 'Barranquilla',
-    'Cucuta', 'Manizales', 'Pereira', 'Ibague', 'Villavicencio',
-    'Giron', 'Floridablanca', 'Piedecuesta', 'Pamplona', 'Soacha'];
+// ===== SUBIR CSV A FIRESTORE =====
+async function subirCSVJMC(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async ev => {
+        const lines = ev.target.result.split('\n').filter(l => l.trim());
+        if (lines.length < 2) { toast('⚠️ CSV vacio'); return; }
+        
+        const nuevas = [];
+        for (let i = 1; i < lines.length; i++) {
+            const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+            if (cols.length < 8 || !cols[0]) continue;
+            nuevas.push({
+                sap: cols[0],
+                tienda: cols[1],
+                ciudad: cols[2],
+                departamento: cols[3],
+                direccion: cols[4],
+                coordinador: cols[5],
+                cargo: cols[6],
+                telefono: cols[7]
+            });
+        }
+        
+        if (!nuevas.length) { toast('⚠️ No se encontraron tiendas'); return; }
+        
+        // Eliminar todas las tiendas actuales en Firestore
+        const snapshot = await getDocs(collection(db, 'jmc_tiendas'));
+        const batch = writeBatch(db);
+        snapshot.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        
+        // Guardar nuevas tiendas
+        for (const tienda of nuevas) {
+            await addDoc(collection(db, 'jmc_tiendas'), tienda);
+        }
+        
+        const version = `${file.name.replace('.csv', '')} · ${new Date().toISOString().split('T')[0]}`;
+        jmcTiendas = nuevas;
+        jmcTiendasVersion = version;
+        input.value = '';
+        renderView();
+        toast(`✅ ${nuevas.length} tiendas guardadas en base de datos`);
+    };
+    reader.readAsText(file, 'UTF-8');
+}
 
-const TIPOS_DOC = ['CC', 'CE', 'PA', 'NIT', 'TI'];
+function descargarPlantillaCSV() {
+    const enc = 'SAP,TIENDA,CIUDAD,DEPARTAMENTO,DIRECCION,COORDINADOR,CARGO,TELEFONO';
+    const filas = jmcTiendas.length > 0 
+        ? jmcTiendas.slice(0,3).map(t => [t.sap, t.tienda, t.ciudad, t.departamento, t.direccion, t.coordinador, t.cargo, t.telefono].join(','))
+        : ['893,Villa del Rosario - Lomitas,Villa del Rosario,Norte de Santander,Anillo Vial No. 12-30,Leny Grimaldos,Coordinador Sr Mantenimiento,3102102100'];
+    const csv = [enc, ...filas].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'JMC_Tiendas_Plantilla.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('📄 Plantilla descargada');
+}
 
-const ESPECIALIDADES = [
-    { id: 'mecanico', label: 'Mecanico de plantas' },
-    { id: 'baja', label: 'Electricista baja tension' },
-    { id: 'media', label: 'Electricista media tension' },
-    { id: 'electronico', label: 'Electronico' },
-    { id: 'ups', label: 'UPS' },
-    { id: 'planta', label: 'Plantas electricas' }
-];
+function getTiendaJMC(sap) {
+    return jmcTiendas.find(t => t.sap === String(sap));
+}
 
-// ===== ESTADO =====
-let currentView = 'panel';
-let sesionActual = null;
-let selectedClienteId = null;
-let selectedEquipoId = null;
-let fotosNuevas = [null, null, null];
-let _servicioEidActual = null;
-let _servicioDatosGuardados = null; // Guardar datos del servicio antes de abrir informe
+function esClienteJMC(clienteId) {
+    const c = getCl(clienteId);
+    return c?.nombre === 'Jeronimo Martins Colombia';
+}
 
 // ===== HELPERS =====
 const getEq = id => equipos.find(e => e.id === id);
@@ -228,6 +262,7 @@ function closeModal() {
     fotosNuevas = [null, null, null];
 }
 
+// ===== TOPBAR SIN BOTÓN DRIVE =====
 function actualizarTopbar() {
     const right = document.getElementById('topbarRight');
     if (!right) return;
@@ -255,6 +290,30 @@ function cerrarSesion() {
     toast('👋 Sesion cerrada');
 }
 
+// ===== ESTADO =====
+let currentView = 'panel';
+let sesionActual = null;
+let selectedClienteId = null;
+let selectedEquipoId = null;
+let fotosNuevas = [null, null, null];
+let _servicioEidActual = null;
+
+const CIUDADES = ['Bogota', 'Medellin', 'Cali', 'Bucaramanga', 'Barranquilla',
+    'Cucuta', 'Manizales', 'Pereira', 'Ibague', 'Villavicencio',
+    'Giron', 'Floridablanca', 'Piedecuesta', 'Pamplona', 'Soacha'];
+
+const TIPOS_DOC = ['CC', 'CE', 'PA', 'NIT', 'TI'];
+
+const ESPECIALIDADES = [
+    { id: 'mecanico', label: 'Mecanico de plantas' },
+    { id: 'baja', label: 'Electricista baja tension' },
+    { id: 'media', label: 'Electricista media tension' },
+    { id: 'electronico', label: 'Electronico' },
+    { id: 'ups', label: 'UPS' },
+    { id: 'planta', label: 'Plantas electricas' }
+];
+
+// ===== NAVEGACIÓN =====
 function goTo(view, cid = null, eid = null) {
     currentView = view;
     selectedClienteId = cid;
@@ -283,7 +342,7 @@ function renderView() {
         case 'detalle':       main.innerHTML = renderDetalleCliente(); break;
         case 'historial':     main.innerHTML = renderHistorial(); break;
         case 'equipos':       main.innerHTML = renderEquipos(); break;
-        case 'servicios':     main.innerHTML = renderServicios(); aplicarFiltros(); break;
+        case 'servicios':     main.innerHTML = renderServicios(); if(window.aplicarFiltros) aplicarFiltros(); break;
         case 'mantenimientos':main.innerHTML = renderMantenimientos(); break;
         case 'tecnicos':      main.innerHTML = renderTecnicos(); break;
         default:              main.innerHTML = renderPanel();
@@ -536,7 +595,12 @@ function renderTecnicos() {
                 <button class="btn btn-blue btn-sm btn-full" onclick="abrirLogin('${t.id}')">🔑 Ingresar como ${t.nombre.split(' ')[0]}</button>
             </div>`;
         }).join('')}
-        ${esAdmin() ? `<div style="margin-top:1.2rem;background:white;border-radius:12px;padding:0.85rem;"><div style="font-weight:700;">🏪 Tiendas Jeronimo Martins</div><div class="ec-meta">${JMC_TIENDAS_VERSION} · ${JMC_TIENDAS.length} tiendas</div><label class="btn btn-blue btn-sm">📥 Subir CSV<input type="file" accept=".csv" style="display:none;" onchange="subirCSVJMC(this)"></label><button class="btn btn-gray btn-sm" onclick="descargarPlantillaCSV()">📄 Plantilla</button></div>` : ''}
+        ${esAdmin() ? `<div style="margin-top:1.2rem;background:white;border-radius:12px;padding:0.85rem;">
+            <div style="font-weight:700;">🏪 Tiendas Jeronimo Martins</div>
+            <div class="ec-meta">Version: ${jmcTiendasVersion} · ${jmcTiendas.length} tiendas</div>
+            <label class="btn btn-blue btn-sm" style="display:inline-block;margin:4px;">📥 Subir CSV<input type="file" accept=".csv" style="display:none;" onchange="subirCSVJMC(this)"></label>
+            <button class="btn btn-gray btn-sm" onclick="descargarPlantillaCSV()">📄 Plantilla</button>
+        </div>` : ''}
     </div>`;
 }
 
@@ -566,57 +630,6 @@ function mlLogin(tid) {
     toast(`✅ Bienvenido, ${t.nombre.split(' ')[0]}`);
 }
 
-// ===== FUNCIONES JMC =====
-const JMC_TIENDAS = [
-    { sap: '893', tienda: 'Villa del Rosario - Lomitas', ciudad: 'Villa del Rosario', departamento: 'Norte de Santander', direccion: 'Anillo Vial No. 12 – 30 Lote 2', coordinador: 'Leny Grimaldos', cargo: 'Coordinador Sr Mantenimiento', telefono: '3102102100' },
-    { sap: '904', tienda: 'Villa del Rosario - Bellavista', ciudad: 'Villa del Rosario', departamento: 'Norte de Santander', direccion: 'Carrera 7 No. 2-34/42', coordinador: 'Leny Grimaldos', cargo: 'Coordinador Sr Mantenimiento', telefono: '3102102100' },
-    { sap: '927', tienda: 'Villa del Rosario - La Palmita', ciudad: 'Villa del Rosario', departamento: 'Norte de Santander', direccion: 'Carrera 7 No. 16 - 48', coordinador: 'Leny Grimaldos', cargo: 'Coordinador Sr Mantenimiento', telefono: '3102102100' },
-    { sap: '947', tienda: 'Pamplona 4 de Julio', ciudad: 'Pamplona', departamento: 'Norte de Santander', direccion: 'Calle 8 No. 7 -102/104', coordinador: 'Leny Grimaldos', cargo: 'Coordinador Sr Mantenimiento', telefono: '3102102100' },
-    { sap: '1032', tienda: 'Malaga - Centro', ciudad: 'Malaga', departamento: 'Santander', direccion: 'Calle 11 No. 8 - 44', coordinador: 'Leny Grimaldos', cargo: 'Coordinador Sr Mantenimiento', telefono: '3102102100' }
-];
-
-let JMC_TIENDAS_VERSION = 'Enero 2026';
-
-function getTiendaJMC(sap) { return JMC_TIENDAS.find(t => t.sap === String(sap)); }
-function esClienteJMC(clienteId) { const c = getCl(clienteId); return c?.nombre === 'Jeronimo Martins Colombia'; }
-
-function subirCSVJMC(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-        const lines = ev.target.result.split('\n').filter(l => l.trim());
-        if (lines.length < 2) { toast('⚠️ CSV vacio'); return; }
-        const nuevas = [];
-        for (let i = 1; i < lines.length; i++) {
-            const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g,''));
-            if (cols.length < 8 || !cols[0]) continue;
-            nuevas.push({ sap: cols[0], tienda: cols[1], ciudad: cols[2], departamento: cols[3], direccion: cols[4], coordinador: cols[5], cargo: cols[6], telefono: cols[7] });
-        }
-        if (!nuevas.length) { toast('⚠️ No se encontraron tiendas'); return; }
-        JMC_TIENDAS.length = 0;
-        nuevas.forEach(t => JMC_TIENDAS.push(t));
-        JMC_TIENDAS_VERSION = `${file.name.replace('.csv','')} · ${new Date().toISOString().split('T')[0]}`;
-        input.value = '';
-        renderView();
-        toast(`✅ ${nuevas.length} tiendas cargadas`);
-    };
-    reader.readAsText(file, 'UTF-8');
-}
-
-function descargarPlantillaCSV() {
-    const enc = 'SAP,TIENDA,CIUDAD,DEPARTAMENTO,DIRECCION,COORDINADOR,CARGO,TELEFONO';
-    const filas = JMC_TIENDAS.slice(0,3).map(t => [t.sap,t.tienda,t.ciudad,t.departamento,t.direccion,t.coordinador,t.cargo,t.telefono].join(','));
-    const csv = [enc, ...filas].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'JMC_Tiendas_Plantilla.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('📄 Plantilla descargada');
-}
-
 // ===== MODAL RECORDAR =====
 function modalRecordar(clienteId, equipoId, fecha) {
     const e = getEq(equipoId);
@@ -644,7 +657,7 @@ function enviarWhatsApp(tel) {
     toast('📱 WhatsApp abierto');
 }
 
-// ===== NUEVO SERVICIO CON FOTOS BASE64 =====
+// ===== NUEVO SERVICIO CON FOTOS =====
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -652,55 +665,6 @@ function fileToBase64(file) {
         reader.onerror = reject;
         reader.readAsDataURL(file);
     });
-}
-
-function guardarDatosServicioAntesDeInforme() {
-    // Guardar los datos actuales del servicio antes de abrir el informe
-    _servicioDatosGuardados = {
-        tipo: document.getElementById('sTipo')?.value,
-        fecha: document.getElementById('sFecha')?.value,
-        descripcion: document.getElementById('sDesc')?.value,
-        proximoMantenimiento: document.getElementById('proxFecha')?.value,
-        fotos: [...fotosNuevas]
-    };
-}
-
-function restaurarDatosServicio() {
-    if (_servicioDatosGuardados) {
-        if (_servicioDatosGuardados.tipo) {
-            const tipoSelect = document.getElementById('sTipo');
-            if (tipoSelect) tipoSelect.value = _servicioDatosGuardados.tipo;
-        }
-        if (_servicioDatosGuardados.fecha) {
-            const fechaInput = document.getElementById('sFecha');
-            if (fechaInput) fechaInput.value = _servicioDatosGuardados.fecha;
-        }
-        if (_servicioDatosGuardados.descripcion) {
-            const descInput = document.getElementById('sDesc');
-            if (descInput) descInput.value = _servicioDatosGuardados.descripcion;
-        }
-        if (_servicioDatosGuardados.proximoMantenimiento) {
-            const proxInput = document.getElementById('proxFecha');
-            if (proxInput) proxInput.value = _servicioDatosGuardados.proximoMantenimiento;
-        }
-        if (_servicioDatosGuardados.fotos) {
-            fotosNuevas = [..._servicioDatosGuardados.fotos];
-            // Actualizar la vista de fotos
-            for (let i = 0; i < fotosNuevas.length; i++) {
-                if (fotosNuevas[i]) {
-                    const slot = document.getElementById('fslot' + i);
-                    if (slot && fotosNuevas[i] instanceof File) {
-                        const reader = new FileReader();
-                        reader.onload = e => {
-                            if (slot) slot.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;"><button class="fslot-del" onclick="borrarFoto(event,${i})">✕</button><input type="file" id="finput${i}" accept="image/*" style="display:none" onchange="previewFoto(this,${i})">`;
-                        };
-                        reader.readAsDataURL(fotosNuevas[i]);
-                    }
-                }
-            }
-        }
-        onTipoChange();
-    }
 }
 
 async function guardarServicio(eid) {
@@ -777,7 +741,6 @@ function modalNuevoServicio(eid) {
     const tiendaJMC = sapActual ? getTiendaJMC(sapActual) : null;
     
     _servicioEidActual = eid;
-    _servicioDatosGuardados = null; // Limpiar datos guardados anteriores
     
     showModal(`<div class="modal" onclick="event.stopPropagation()">
         <div class="modal-h"><h3>Nuevo servicio</h3><button class="xbtn" onclick="closeModal()">✕</button></div>
@@ -793,7 +756,7 @@ function modalNuevoServicio(eid) {
             </div>
             <label class="fl">Tecnico</label>
             <input class="fi" id="sTecnico" value="${sesionActual?.nombre||''}" readonly>
-            ${esJMC ? `<div style="background:#f5f3ff;border-radius:10px;padding:0.65rem;margin-top:0.65rem;display:flex;justify-content:space-between;align-items:center;"><span style="color:#5b21b6;">📋 Informe tecnico Jeronimo Martins</span><button class="btn btn-sm" style="background:#7c3aed;color:white;" onclick="guardarDatosServicioAntesDeInforme(); modalInformeJMC('${eid}')">Abrir</button></div>` : ''}
+            ${esJMC ? `<div style="background:#f5f3ff;border-radius:10px;padding:0.65rem;margin-top:0.65rem;display:flex;justify-content:space-between;align-items:center;"><span style="color:#5b21b6;">📋 Informe tecnico Jeronimo Martins</span><button class="btn btn-sm" style="background:#7c3aed;color:white;" onclick="modalInformeJMC('${eid}')">Abrir</button></div>` : ''}
             <label class="fl">Diagnostico / Descripcion *</label>
             <textarea class="fi" id="sDesc" rows="3" placeholder="Trabajo realizado..."></textarea>
             <div class="mant-box hidden" id="mantBox">
@@ -811,11 +774,6 @@ function modalNuevoServicio(eid) {
         </div>
     </div>`);
     onTipoChange();
-    
-    // Restaurar datos si había
-    if (_servicioDatosGuardados) {
-        setTimeout(() => restaurarDatosServicio(), 100);
-    }
 }
 
 function modalEditarServicio(sid) {
@@ -843,7 +801,7 @@ async function eliminarServicio(sid) {
     catch(err) { toast('❌ Error: ' + err.message); }
 }
 
-// ===== MODAL INFORME JMC CON DRIVE Y RETORNO =====
+// ===== MODAL INFORME JMC CON DRIVE PDF =====
 function modalInformeJMC(eid) {
     const e = getEq(eid);
     const hoy = new Date().toISOString().split('T')[0];
@@ -851,7 +809,7 @@ function modalInformeJMC(eid) {
     const tienda = getTiendaJMC(sapActual);
     const dd = hoy.split('-')[2], mm = hoy.split('-')[1], aa = hoy.split('-')[0].slice(2);
 
-    showModal(`<div class="modal modal-wide"><div class="modal-h" style="background:#1e3a6e;"><h3>📋 Informe Jeronimo Martins — FF-JMC-DT-06</h3><button class="xbtn" onclick="cerrarInformeYVolver()">✕</button></div>
+    showModal(`<div class="modal modal-wide"><div class="modal-h" style="background:#1e3a6e;"><h3>📋 Informe Jeronimo Martins — FF-JMC-DT-06</h3><button class="xbtn" onclick="closeModal()">✕</button></div>
         <div class="modal-b">
             <div style="background:#0d4a3a;color:white;text-align:center;padding:4px;margin-bottom:6px;border-radius:4px;">CONTRATISTA</div>
             <div class="fr"><div><label class="fl">Razon social</label><input class="fi" value="OLM INGENIERIA SAS" readonly></div><div><label class="fl">NIT</label><input class="fi" value="901.050.468-5" readonly></div></div>
@@ -882,20 +840,10 @@ function modalInformeJMC(eid) {
             <label class="fl">Firma</label>
             <canvas id="jFirmaCanvas" width="300" height="80" style="width:100%;height:80px;border:1.5px dashed var(--green);border-radius:8px;background:#f0faf5;"></canvas>
             <button class="btn btn-gray btn-sm" onclick="limpiarFirmaJMC()">🗑 Limpiar firma</button>
-            <div class="modal-foot"><button class="btn btn-gray" onclick="cerrarInformeYVolver()">Cancelar</button><button class="btn btn-blue" onclick="exportarInformeJMC('${eid}')">📄 Exportar PDF</button></div>
+            <div class="modal-foot"><button class="btn btn-gray" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="exportarInformeJMC('${eid}')">📄 Exportar PDF</button></div>
         </div>
     </div>`);
     setTimeout(() => iniciarFirmaCanvas('jFirmaCanvas'), 100);
-}
-
-function cerrarInformeYVolver() {
-    closeModal();
-    // Volver al formulario de nuevo servicio
-    setTimeout(() => {
-        if (_servicioEidActual) {
-            modalNuevoServicio(_servicioEidActual);
-        }
-    }, 100);
 }
 
 function iniciarFirmaCanvas(canvasId) {
@@ -932,41 +880,45 @@ async function exportarInformeJMC(eid) {
     const fechaArch = dd && mm && aa ? `${dd}-${mm}-${aa}` : new Date().toISOString().split('T')[0];
     const nombreArch = `TK_${ticket || 'sin-ticket'}_SAP_${sap || 'sin-sap'}_${fechaArch}`;
     
+    // Obtener el coordinador actual de la tienda
+    const tiendaActual = getTiendaJMC(sap);
+    const coordinadorActual = tiendaActual ? tiendaActual.coordinador : document.getElementById('jNombreSol')?.value || '';
+    
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${nombreArch}</title><style>body{font-family:Arial;font-size:10px;padding:20px;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #333;padding:5px;vertical-align:top;}</style></head><body>
     <h2>JERONIMO MARTINS COLOMBIA</h2>
     <h3>FF-JMC-DT-06 - INFORME DE SERVICIO</h3>
-    <table>
-        <tr><td><strong>Contratista:</strong> OLM INGENIERIA SAS</td><td><strong>NIT:</strong> 901.050.468-5</td></tr>
-        <tr><td><strong>Solicitante:</strong> ${document.getElementById('jNombreSol')?.value || ''}</td><td><strong>Cargo:</strong> ${document.getElementById('jCargo')?.value || ''}</td></tr>
-        <tr><td><strong>Tienda:</strong> ${document.getElementById('jTienda')?.value || ''}</td><td><strong>SAP:</strong> ${sap}</td></tr>
-        <tr><td><strong>Ticket:</strong> ${ticket}</td><td><strong>Fecha:</strong> ${dd}/${mm}/${aa}</td></tr>
-        <tr><td><strong>Equipo:</strong> ${document.getElementById('jEquipo')?.value || ''}</td><td><strong>Marca:</strong> ${document.getElementById('jMarca')?.value || ''}</td></tr>
-        <tr><td colspan="2"><strong>Diagnostico:</strong> ${document.getElementById('jDiag')?.value || ''}</td></tr>
-        <tr><td colspan="2"><strong>Repuestos:</strong> ${document.getElementById('jRepuestos')?.value || ''}</td></tr>
-        <tr><td colspan="2"><strong>Observaciones:</strong> ${document.getElementById('jObs')?.value || ''}</td></tr>
-        <tr><td><strong>Tecnico:</strong> ${sesionActual?.nombre || ''}</td><td><strong>Firma:</strong> <img src="${firmaDataUrl}" style="height:40px;"></td></tr>
-    </table>
+    <p><strong>Fecha:</strong> ${dd}/${mm}/${aa}</p>
+    <p><strong>Ticket:</strong> ${ticket}</p>
+    <p><strong>Tienda SAP:</strong> ${sap}</p>
+    <p><strong>Coordinador actual:</strong> ${coordinadorActual}</p>
+    <hr>
+    <p><strong>Equipo:</strong> ${document.getElementById('jEquipo')?.value || ''} - ${document.getElementById('jMarca')?.value || ''}</p>
+    <p><strong>Diagnostico:</strong> ${document.getElementById('jDiag')?.value || ''}</p>
+    <p><strong>Repuestos:</strong> ${document.getElementById('jRepuestos')?.value || ''}</p>
+    <p><strong>Observaciones:</strong> ${document.getElementById('jObs')?.value || ''}</p>
+    <hr>
+    <p><strong>Tecnico:</strong> ${sesionActual?.nombre || ''}</p>
+    ${firmaDataUrl ? `<p><strong>Firma:</strong> <img src="${firmaDataUrl}" style="height:40px;"></p>` : ''}
     <p>Documento generado por OLM Ingenieria SAS - ${new Date().toLocaleString()}</p>
     </body></html>`;
     
-    // Abrir el PDF en nueva ventana
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const blobUrl = URL.createObjectURL(blob);
-    window.open(blobUrl, '_blank');
-    
-    // Subir a Drive si está conectado
-    if (driveIsConnected()) {
-        const subido = await driveUploadHTML(html, nombreArch + '.html');
-        if (subido) {
-            toast('✅ Informe guardado en Drive');
-        } else {
-            toast('⚠️ No se pudo guardar en Drive, pero el PDF se abrió');
-        }
+    // Guardar en Drive como PDF
+    const guardado = await driveUploadPDF(html, nombreArch + '.pdf');
+    if (guardado) {
+        toast('✅ Informe guardado en Drive como PDF');
     } else {
-        toast('📄 PDF generado');
+        toast('⚠️ No se pudo guardar en Drive, pero se abrirá para impresión');
     }
     
-    // Cerrar el modal del informe y volver al servicio (NO cerrar el servicio)
+    // Abrir para impresión (respaldo)
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const ventana = window.open(url, '_blank');
+    if (ventana) {
+        ventana.onload = () => { ventana.print(); };
+    }
+    
+    // Cerrar modal y volver
     closeModal();
     setTimeout(() => {
         if (_servicioEidActual) {
@@ -1169,7 +1121,7 @@ function generarInformePDF(eid) {
     const e = getEq(eid);
     const c = getCl(e?.clienteId);
     const ss = getServiciosEquipo(eid).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe_${e?.marca}_${e?.modelo}</title><style>body{font-family:Arial;padding:20px;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #ccc;padding:8px;}</style></head><body><h1>OLM INGENIERIA SAS</h1><h2>Informe Tecnico</h2><p><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</p><p><strong>Activo:</strong> ${e?.marca} ${e?.modelo} - Serie: ${e?.serie || 'N/A'}</p><p><strong>Ubicacion:</strong> ${e?.ubicacion || 'N/A'}</p><h3>Historial de Servicios</h3><tr><tr><th>Fecha</th><th>Tipo</th><th>Tecnico</th><th>Descripcion</th></tr>${ss.map(s => `<tr><td>${fmtFecha(s.fecha)}</td><td>${s.tipo}</td><td>${s.tecnico}</td><td>${s.descripcion}</td></tr>`).join('')}</table><p>Total de servicios: ${ss.length}</p><p>Generado: ${new Date().toLocaleString()}</p></body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe_${e?.marca}_${e?.modelo}</title><style>body{font-family:Arial;padding:20px;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #ccc;padding:8px;}</style></head><body><h1>OLM INGENIERIA SAS</h1><h2>Informe Tecnico</h2><p><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</p><p><strong>Activo:</strong> ${e?.marca} ${e?.modelo} - Serie: ${e?.serie || 'N/A'}</p><p><strong>Ubicacion:</strong> ${e?.ubicacion || 'N/A'}</p><h3>Historial de Servicios</h3><table><tr><th>Fecha</th><th>Tipo</th><th>Tecnico</th><th>Descripcion</th></tr>${ss.map(s => `<tr><td>${fmtFecha(s.fecha)}</td><td>${s.tipo}</td><td>${s.tecnico}</td><td>${s.descripcion}</td></tr>`).join('')}</table><p>Total de servicios: ${ss.length}</p><p>Generado: ${new Date().toLocaleString()}</p></body></html>`;
     const v = window.open('', '_blank');
     v.document.write(html);
     v.document.close();
@@ -1248,8 +1200,6 @@ window.mlPin = mlPin;
 window.mlDel = mlDel;
 window.mlLogin = mlLogin;
 window.cerrarSesion = cerrarSesion;
-window.guardarDatosServicioAntesDeInforme = guardarDatosServicioAntesDeInforme;
-window.cerrarInformeYVolver = cerrarInformeYVolver;
 
 document.querySelectorAll('.bni').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1264,9 +1214,9 @@ document.querySelectorAll('.bni').forEach(btn => {
     });
 });
 
-// Iniciar la app
+// ===== INICIAR APP =====
 (async () => {
-    await conectarDriveAuto();  // Conexión automática a Drive (silenciosa)
+    await conectarDriveAuto();
     await sembrarDatos();
     await cargarDatos();
     if (!manejarRutaQR()) renderView();
