@@ -865,35 +865,272 @@ async function exportarInformeJMC(eid) {
     const canvas = document.getElementById('jFirmaCanvas');
     const firmaDataUrl = canvas ? canvas.toDataURL('image/png') : '';
     const getRadio = name => document.querySelector(`input[name="${name}"]:checked`)?.value || '';
-    const ticket = document.getElementById('jTicket')?.value || '';
-    const sap = document.getElementById('jSAP')?.value || '';
-    const dd = document.getElementById('jDD')?.value || '';
-    const mm = document.getElementById('jMM')?.value || '';
-    const aa = document.getElementById('jAA')?.value || '';
-    const fechaArch = dd && mm && aa ? `${dd}-${mm}-${aa}` : new Date().toISOString().split('T')[0];
+
+    const ticket  = document.getElementById('jTicket')?.value || '';
+    const sap     = document.getElementById('jSAP')?.value || '';
+    const dd      = document.getElementById('jDD')?.value || '';
+    const mm      = document.getElementById('jMM')?.value || '';
+    const aa      = document.getElementById('jAA')?.value || '';
+    const fechaArch  = dd && mm && aa ? `${dd}-${mm}-${aa}` : new Date().toISOString().split('T')[0];
     const nombreArch = `TK_${ticket || 'sin-ticket'}_SAP_${sap || 'sin-sap'}_${fechaArch}`;
-    
-    const tiendaActual = getTiendaJMC(sap);
+
+    const tiendaActual      = getTiendaJMC(sap);
     const coordinadorActual = tiendaActual ? tiendaActual.coordinador : document.getElementById('jNombreSol')?.value || '';
-    
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${nombreArch}</title><style>body{font-family:Arial;font-size:10px;padding:20px;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #333;padding:5px;vertical-align:top;}</style></head><body>
+
+    const nomSol    = document.getElementById('jNombreSol')?.value  || '';
+    const cargoSol  = document.getElementById('jCargo')?.value      || '';
+    const nomTienda = document.getElementById('jTienda')?.value     || '';
+    const municipio = document.getElementById('jMunicipio')?.value  || '';
+    const depto     = document.getElementById('jDepartamento')?.value || '';
+    const nomEquipo = document.getElementById('jEquipo')?.value     || '';
+    const marcaEq   = document.getElementById('jMarca')?.value      || '';
+    const serialEq  = document.getElementById('jSerial')?.value     || '';
+    const descFalla = document.getElementById('jDescFalla')?.value  || '';
+    const diag      = document.getElementById('jDiag')?.value       || '';
+    const repuestos = document.getElementById('jRepuestos')?.value  || '';
+    const obs       = document.getElementById('jObs')?.value        || '';
+    const hEntrada  = document.getElementById('jHEntrada')?.value   || '';
+    const hSalida   = document.getElementById('jHSalida')?.value    || '';
+    const funcNombre= document.getElementById('jFuncNombre')?.value || '';
+    const funcCedula= document.getElementById('jFuncCedula')?.value || '';
+    const funcCargo = document.getElementById('jFuncCargo')?.value  || '';
+    const funcSAP   = document.getElementById('jFuncSAP')?.value    || '';
+
+    const tipoAsi   = getRadio('jTipoAsi');
+    const tipoFalla = getRadio('jTipoFalla');
+    const causa     = getRadio('jCausa');
+
+    const LOGO_ARA = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/logo_ara.png';
+    const LOGO_JM  = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/JEronimo_LOGO.png';
+
+    const chk = (val, opt) => val === opt
+        ? '<td style="border:1px solid #333;text-align:center;padding:4px;background:#0d4a3a;color:white;font-weight:700;">■</td>'
+        : '<td style="border:1px solid #333;text-align:center;padding:4px;">□</td>';
+
+    const evalRow = (label, isSection) => `
+        <tr>
+            ${isSection ? `<td rowspan="2" style="border:1px solid #333;padding:4px;font-weight:700;font-size:9px;vertical-align:middle;">${label}</td>` : ''}
+        </tr>`;
+
+    // Filas de evaluacion del servicio
+    const evalRows = [
+        { seccion: 'SEGURIDAD',            items: [
+            'La labor realizada genera una alta riesgo de accidentalidad para los clientes y/o colaboradores',
+            'La labor realizada ofrece algun riesgo para la integridad del equipo'
+        ]},
+        { seccion: 'FUNCIONAMIENTO',       items: [
+            'La falla reportada fue solucionada con el trabajo realizado',
+            'Para operar y/o asear el equipo o area intervenida se siguen los pasos normales de manejo anteriores a la asistencia'
+        ]},
+        { seccion: 'CALIDAD',              items: [
+            'La calidad del trabajo esta de acuerdo a la requerida por el personal o el equipo'
+        ]},
+        { seccion: 'LIMPIEZA Y ORGANIZACION', items: [
+            'El equipo o area intervenida se dejo armado y/o organizado como se encontraba en un inicio',
+            'Los escombros y suciedad generada por el tecnico fue aseado'
+        ]},
+        { seccion: 'CAPACITACION',         items: [
+            'Se indico la causa de la novedad al personal que recibio el trabajo',
+            'Se indico como prevenir que el problema se vuelva a presentar',
+            'Se indico como actuar en caso de que el problema se vuelva a presentar'
+        ]}
+    ];
+
+    let evalHTML = '';
+    evalRows.forEach(grupo => {
+        grupo.items.forEach((item, idx) => {
+            evalHTML += `<tr>
+                ${idx === 0 ? `<td rowspan="${grupo.items.length}" style="border:1px solid #333;padding:4px;font-weight:700;font-size:9px;vertical-align:middle;">${grupo.seccion}</td>` : ''}
+                <td style="border:1px solid #333;padding:4px;font-size:9px;">${item}</td>
+                <td style="border:1px solid #333;text-align:center;padding:4px;font-size:11px;">✗</td>
+                <td style="border:1px solid #333;text-align:center;padding:4px;"></td>
+            </tr>`;
+        });
+    });
+
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>${nombreArch}</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 9px; margin: 0; padding: 14px; color: #111; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+  td, th { border: 1px solid #333; padding: 3px 5px; vertical-align: top; }
+  .hdr-sec { background: #0d4a3a; color: white; font-weight: 700; text-align: center; font-size: 9px; padding: 3px; letter-spacing: 0.5px; }
+  .lbl { font-size: 8px; color: #555; display: block; margin-bottom: 1px; }
+  .val { font-size: 9px; font-weight: 700; }
+  .ticket-box { background: #fff; border: 2px solid #333; text-align: center; }
+  .ticket-num { font-size: 22px; font-weight: 900; color: #1a1a6e; letter-spacing: 1px; }
+  .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .top-header-center { text-align: center; flex: 1; }
+  .top-header-center h2 { margin: 0; font-size: 13px; font-weight: 900; }
+  .top-header-center h3 { margin: 0; font-size: 9px; font-weight: 400; }
+  .logo-ara { height: 42px; }
+  .logo-jm  { height: 38px; }
+  .anexo { font-size: 8px; text-align: right; font-weight: 700; }
+  @media print { body { padding: 8px; } }
+</style>
+</head><body>
+
+<div class="anexo">ANEXO 3</div>
+<div class="top-header">
+  <img src="${LOGO_ARA}" class="logo-ara" onerror="this.style.display='none'">
+  <div class="top-header-center">
     <h2>JERONIMO MARTINS COLOMBIA</h2>
-    <h3>FF-JMC-DT-06 - INFORME DE SERVICIO</h3>
-    <p><strong>Fecha:</strong> ${dd}/${mm}/${aa}</p>
-    <p><strong>Ticket:</strong> ${ticket}</p>
-    <p><strong>Tienda SAP:</strong> ${sap}</p>
-    <p><strong>Coordinador actual:</strong> ${coordinadorActual}</p>
-    <hr>
-    <p><strong>Equipo:</strong> ${document.getElementById('jEquipo')?.value || ''} - ${document.getElementById('jMarca')?.value || ''}</p>
-    <p><strong>Diagnostico:</strong> ${document.getElementById('jDiag')?.value || ''}</p>
-    <p><strong>Repuestos:</strong> ${document.getElementById('jRepuestos')?.value || ''}</p>
-    <p><strong>Observaciones:</strong> ${document.getElementById('jObs')?.value || ''}</p>
-    <hr>
-    <p><strong>Tecnico:</strong> ${sesionActual?.nombre || ''}</p>
-    ${firmaDataUrl ? `<p><strong>Firma:</strong> <img src="${firmaDataUrl}" style="height:40px;"></p>` : ''}
-    <p>Documento generado por OLM Ingenieria SAS - ${new Date().toLocaleString()}</p>
-    </body></html>`;
-    
+    <h3>FORMATO UNICO DE SOPORTE — FF-JMC-DT-06</h3>
+  </div>
+  <img src="${LOGO_JM}" class="logo-jm" onerror="this.style.display='none'">
+</div>
+
+<!-- CONTRATISTA -->
+<table>
+  <tr><td colspan="6" class="hdr-sec">CONTRATISTA</td></tr>
+  <tr>
+    <td style="width:18%;"><span class="lbl">Razon social</span><span class="val">OLM INGENIERIA SAS</span></td>
+    <td style="width:20%;"><span class="lbl">N° NIT</span><span class="val">901.050.468-5</span></td>
+    <td style="width:22%;"><span class="lbl">Contacto</span><span class="val">Oscar Leonardo Martinez</span></td>
+    <td style="width:18%;"><span class="lbl">Telefono</span><span class="val">311 4831801</span></td>
+    <td colspan="2"></td>
+  </tr>
+</table>
+
+<!-- SOLICITANTE Y TIENDA -->
+<table style="margin-top:-1px;">
+  <tr><td colspan="6" class="hdr-sec">SOLICITANTE Y TIENDA BENEFICIARIA</td></tr>
+  <tr>
+    <td colspan="2"><span class="lbl">Nombre del solicitante</span><span class="val">${nomSol}</span></td>
+    <td colspan="2"><span class="lbl">Cargo</span><span class="val">${cargoSol}</span></td>
+    <td colspan="2"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><span class="lbl">Nombre de la tienda</span><span class="val">${nomTienda}</span></td>
+    <td><span class="lbl">N° Tienda</span><span class="val">${sap}</span></td>
+    <td class="ticket-box" colspan="2">
+      <span class="lbl" style="color:#555;">N° TICKET:</span>
+      <div class="ticket-num">${ticket}</div>
+    </td>
+    <td><span class="lbl">Fecha</span><span class="val">${dd}/${mm}/${aa}</span></td>
+  </tr>
+  <tr>
+    <td colspan="2"><span class="lbl">Municipio</span><span class="val">${municipio}</span></td>
+    <td colspan="2"><span class="lbl">Departamento</span><span class="val">${depto}</span></td>
+    <td colspan="2"></td>
+  </tr>
+</table>
+
+<!-- INFORMACION TECNICA -->
+<table style="margin-top:-1px;">
+  <tr><td colspan="6" class="hdr-sec">INFORMACION AREA TECNICA</td></tr>
+  <tr>
+    <td colspan="2"><span class="lbl">Nombre del equipo</span><span class="val">${nomEquipo}</span></td>
+    <td colspan="2"><span class="lbl">Marca</span><span class="val">${marcaEq}</span></td>
+    <td colspan="2"><span class="lbl">Serial</span><span class="val">${serialEq}</span></td>
+  </tr>
+</table>
+
+<!-- TIPO DE ASISTENCIA -->
+<table style="margin-top:-1px;">
+  <tr><td colspan="8" class="hdr-sec">TIPO DE ASISTENCIA</td></tr>
+  <tr style="text-align:center;">
+    ${['Reparacion','Garantia','Ajuste','Modificacion','Servicio','Mejora','Combinacion'].map(t =>
+      `<td style="border:1px solid #333;padding:3px;font-size:9px;">${tipoAsi===t?'■':''} ${t}</td>`
+    ).join('')}
+  </tr>
+</table>
+
+<!-- TIPO DE FALLA -->
+<table style="margin-top:-1px;">
+  <tr><td colspan="6" class="hdr-sec">TIPO DE FALLA</td></tr>
+  <tr style="text-align:center;">
+    ${['Mecanicas','Material','Instrumentos','Electricas','Influencia Externa'].map(t =>
+      `<td style="border:1px solid #333;padding:3px;font-size:9px;">${tipoFalla===t?'■':''} ${t}</td>`
+    ).join('')}
+  </tr>
+</table>
+
+<!-- CAUSA DE FALLAS -->
+<table style="margin-top:-1px;">
+  <tr><td colspan="6" class="hdr-sec">CAUSA DE FALLAS BASICAS</td></tr>
+  <tr style="text-align:center;">
+    ${['Diseno','Fabricacion/Instalacion','Operacion/Mantenimiento','Administracion','Desconocida'].map(t =>
+      `<td style="border:1px solid #333;padding:3px;font-size:9px;">${causa===t?'■':''} ${t}</td>`
+    ).join('')}
+  </tr>
+</table>
+
+<!-- DESCRIPCION / DIAGNOSTICO / REPUESTOS / OBS -->
+<table style="margin-top:-1px;">
+  <tr>
+    <td colspan="6"><span class="lbl">Descripcion de la falla funcionario tienda:</span>
+      <div style="min-height:28px;font-size:9px;">${descFalla}</div></td>
+  </tr>
+  <tr>
+    <td colspan="6"><span class="lbl">Diagnostico del tecnico:</span>
+      <div style="min-height:36px;font-size:9px;">${diag}</div></td>
+  </tr>
+  <tr>
+    <td colspan="6"><span class="lbl">Repuestos cambiados:</span>
+      <div style="min-height:22px;font-size:9px;">${repuestos || 'NA'}</div></td>
+  </tr>
+  <tr>
+    <td colspan="6"><span class="lbl">Observaciones:</span>
+      <div style="min-height:28px;font-size:9px;">${obs}</div></td>
+  </tr>
+</table>
+
+<!-- EVALUACION DEL SERVICIO -->
+<table style="margin-top:-1px;">
+  <tr><td colspan="4" class="hdr-sec">EVALUACION DEL SERVICIO</td></tr>
+  <tr>
+    <th style="width:18%;font-size:8px;">PARAMETROS DE EVALUACION</th>
+    <th style="font-size:8px;"></th>
+    <th style="width:10%;text-align:center;font-size:8px;">CUMPLE</th>
+    <th style="width:10%;text-align:center;font-size:8px;">NO CUMPLE</th>
+  </tr>
+  ${evalHTML}
+</table>
+
+<!-- CONSTANCIA -->
+<table style="margin-top:-1px;">
+  <tr><td colspan="6" class="hdr-sec">CONSTANCIA REALIZACION ASISTENCIA</td></tr>
+  <tr style="text-align:center;font-size:8px;font-weight:700;">
+    <td>Contratistas</td><td>Cedula</td><td>Hora de entrada</td><td>Hora de salida</td><td colspan="2">Datos Funcionario de la tienda</td>
+  </tr>
+  <tr>
+    <td style="font-size:9px;">${sesionActual?.nombre || ''}</td>
+    <td style="font-size:9px;">${sesionActual?.cedula || ''}</td>
+    <td style="text-align:center;font-size:9px;">${hEntrada}</td>
+    <td style="text-align:center;font-size:9px;">${hSalida}</td>
+    <td style="font-size:9px;">
+      <span class="lbl">Nombre:</span>${funcNombre}<br>
+      <span class="lbl">Cedula:</span>${funcCedula}
+    </td>
+    <td style="font-size:9px;">
+      <span class="lbl">Cargo:</span>${funcCargo}<br>
+      <span class="lbl">SAP:</span>${funcSAP}
+    </td>
+  </tr>
+</table>
+
+<!-- FIRMA -->
+<table style="margin-top:-1px;">
+  <tr>
+    <td style="width:50%;padding:6px;">
+      <span class="lbl">Firma Tecnico Encargado:</span>
+      <div style="font-size:9px;font-weight:700;margin-bottom:4px;">${sesionActual?.nombre || ''}</div>
+      <span class="lbl">Cargo:</span>
+    </td>
+    <td style="width:50%;padding:6px;">
+      <span class="lbl">Firma:</span>
+      ${firmaDataUrl ? `<img src="${firmaDataUrl}" style="height:48px;display:block;margin-top:2px;">` : '<div style="height:48px;"></div>'}
+    </td>
+  </tr>
+</table>
+
+<div style="font-size:7px;color:#888;text-align:right;margin-top:4px;">
+  Documento generado por OLM Ingenieria SAS - ${new Date().toLocaleString()}
+</div>
+
+</body></html>`;
+
     // Guardar en Drive como PDF
     const guardado = await driveUploadPDF(html, nombreArch + '.pdf');
     if (guardado) {
@@ -901,7 +1138,7 @@ async function exportarInformeJMC(eid) {
     } else {
         toast('⚠️ No se pudo guardar en Drive');
     }
-    
+
     // Abrir para impresión (respaldo)
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
@@ -909,7 +1146,7 @@ async function exportarInformeJMC(eid) {
     if (ventana) {
         ventana.onload = () => { ventana.print(); };
     }
-    
+
     closeModal();
     setTimeout(() => {
         if (_servicioEidActual) {
@@ -1167,14 +1404,22 @@ window.limpiarFiltros = limpiarFiltros;
 window.modalNuevoCliente = modalNuevoCliente;
 window.modalEditarCliente = modalEditarCliente;
 window.modalEliminarCliente = modalEliminarCliente;
+window.guardarCliente = guardarCliente;
+window.actualizarCliente = actualizarCliente;
 window.modalNuevoEquipo = modalNuevoEquipo;
 window.modalEditarEquipo = modalEditarEquipo;
 window.modalEliminarEquipo = modalEliminarEquipo;
+window.guardarEquipo = guardarEquipo;
+window.actualizarEquipo = actualizarEquipo;
 window.modalNuevoServicio = modalNuevoServicio;
 window.modalEditarServicio = modalEditarServicio;
+window.guardarServicio = guardarServicio;
+window.actualizarServicio = actualizarServicio;
 window.eliminarServicio = eliminarServicio;
 window.modalNuevoTecnico = modalNuevoTecnico;
 window.modalEditarTecnico = modalEditarTecnico;
+window.guardarTecnico = guardarTecnico;
+window.actualizarTecnico = actualizarTecnico;
 window.eliminarTecnico = eliminarTecnico;
 window.modalRecordar = modalRecordar;
 window.enviarWhatsApp = enviarWhatsApp;
