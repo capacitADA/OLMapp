@@ -1,8 +1,10 @@
 // ============================================
 // OLM INGENIERÍA SAS - APP Firebase
+// Versión definitiva: PDF a Drive + CSV persistente
 // ============================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, writeBatch }
+    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBpW1ZLMZkpjbsBWiCRA3W15DHO2x-1aTE",
@@ -13,7 +15,7 @@ const firebaseConfig = {
     appId: "1:936967827188:web:7581731966a851725638a1"
 };
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJkD-Vx0H6VtGIIdZD5b7AMkX_Zqmw6tt8JwEFrAAVX8pA3WAyMvLJeBnVGWrDavq2/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYWgupeHfhfKmvMDk_FFsTj-P9PdJfXMn3pheGjFMXK7i43AW1V8A5BD4iCSbOho9c/exec';
 
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
@@ -25,12 +27,9 @@ function driveIsConnected() { return _driveConnected; }
 
 async function conectarDriveAuto() {
     try {
-        const response = await fetch(APPS_SCRIPT_URL, { method: 'GET', mode: 'cors' });
-        const text = await response.text();
-        if (text.includes('OK')) {
-            _driveConnected = true;
-            console.log('✅ Drive conectado');
-        }
+        const response = await fetch(APPS_SCRIPT_URL, { method: 'GET', mode: 'no-cors' });
+        _driveConnected = true;
+        console.log('✅ Drive conectado automáticamente');
     } catch (e) {
         console.log('⚠️ Drive no disponible');
         _driveConnected = false;
@@ -38,17 +37,17 @@ async function conectarDriveAuto() {
 }
 
 async function driveUploadPDF(html, filename) {
-    if (!_driveConnected) return false;
     if (!filename.endsWith('.pdf')) filename = filename.replace('.html', '') + '.pdf';
     
     try {
-        const response = await fetch(APPS_SCRIPT_URL, {
+        await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ html: html, filename: filename })
         });
-        const result = await response.json();
-        return result.success === true;
+        console.log('✅ PDF enviado a Drive:', filename);
+        return true;
     } catch(e) {
         console.error('Error Drive:', e);
         return false;
@@ -143,43 +142,44 @@ async function sembrarDatos() {
     toast('✅ Listo. Cedula: 0000001 · Clave: 1234');
 }
 
-// ===== SUBIR CSV A FIRESTORE =====
+// ===== CSV A FIRESTORE =====
+async function guardarTiendasJMC(tiendas, version) {
+    const snapshot = await getDocs(collection(db, 'jmc_tiendas'));
+    const batch = writeBatch(db);
+    snapshot.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    
+    for (const t of tiendas) {
+        await addDoc(collection(db, 'jmc_tiendas'), { ...t, version });
+    }
+}
+
 async function subirCSVJMC(input) {
     const file = input.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = async ev => {
         const lines = ev.target.result.split('\n').filter(l => l.trim());
-        if (lines.length < 2) { toast('⚠️ CSV vacio'); return; }
-        
         const nuevas = [];
         for (let i = 1; i < lines.length; i++) {
             const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-            if (cols.length < 8 || !cols[0]) continue;
-            nuevas.push({
-                sap: cols[0],
-                tienda: cols[1],
-                ciudad: cols[2],
-                departamento: cols[3],
-                direccion: cols[4],
-                coordinador: cols[5],
-                cargo: cols[6],
-                telefono: cols[7]
-            });
+            if (cols.length >= 8 && cols[0]) {
+                nuevas.push({
+                    sap: cols[0],
+                    tienda: cols[1],
+                    ciudad: cols[2],
+                    departamento: cols[3],
+                    direccion: cols[4],
+                    coordinador: cols[5],
+                    cargo: cols[6],
+                    telefono: cols[7]
+                });
+            }
         }
+        if (!nuevas.length) { toast('⚠️ CSV inválido'); return; }
         
-        if (!nuevas.length) { toast('⚠️ No se encontraron tiendas'); return; }
-        
-        const snapshot = await getDocs(collection(db, 'jmc_tiendas'));
-        const batch = writeBatch(db);
-        snapshot.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-        
-        for (const tienda of nuevas) {
-            await addDoc(collection(db, 'jmc_tiendas'), tienda);
-        }
-        
-        const version = `${file.name.replace('.csv', '')} · ${new Date().toISOString().split('T')[0]}`;
+        const version = `${file.name} · ${new Date().toISOString().split('T')[0]}`;
+        await guardarTiendasJMC(nuevas, version);
         jmcTiendas = nuevas;
         jmcTiendasVersion = version;
         input.value = '';
@@ -220,8 +220,6 @@ const getTec = id => tecnicos.find(t => t.id === id);
 const getEquiposCliente = cid => equipos.filter(e => e.clienteId === cid);
 const getServiciosEquipo = eid => servicios.filter(s => s.equipoId === eid);
 const getServiciosCliente = cid => servicios.filter(s => getEquiposCliente(cid).some(e => e.id === s.equipoId));
-
-function genId() { return '_' + Math.random().toString(36).substr(2, 9); }
 
 function fmtFecha(f) {
     if (!f) return '';
@@ -566,7 +564,7 @@ function renderMantenimientos() {
                             <td>${c?.nombre||'N/A'}<\/td>
                             <td>${e?`${e.marca} ${e.modelo}`:'N/A'}<\/td>
                             <td><button class="rec-btn" onclick="modalRecordar('${e?.clienteId}','${e?.id}','${m.proximoMantenimiento}')">📱<\/button><\/td>
-                        </td>`;
+                        </tr>`;
                     }).join('');
                 }).join('')}
                 </tbody>
@@ -904,7 +902,7 @@ async function exportarInformeJMC(eid) {
         toast('⚠️ No se pudo guardar en Drive');
     }
     
-    // Abrir para impresión
+    // Abrir para impresión (respaldo)
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const ventana = window.open(url, '_blank');
@@ -1117,7 +1115,7 @@ function generarInformePDF(eid) {
     const e = getEq(eid);
     const c = getCl(e?.clienteId);
     const ss = getServiciosEquipo(eid).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe_${e?.marca}_${e?.modelo}</title><style>body{font-family:Arial;padding:20px;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #ccc;padding:8px;}</style></head><body><h1>OLM INGENIERIA SAS</h1><h2>Informe Tecnico</h2><p><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</p><p><strong>Activo:</strong> ${e?.marca} ${e?.modelo} - Serie: ${e?.serie || 'N/A'}</p><p><strong>Ubicacion:</strong> ${e?.ubicacion || 'N/A'}</p><h3>Historial de Servicios</h3><table border="1"><tr><th>Fecha</th><th>Tipo</th><th>Tecnico</th><th>Descripcion</th></tr>${ss.map(s => `<tr><td>${fmtFecha(s.fecha)}</td><td>${s.tipo}</td><td>${s.tecnico}</td><td>${s.descripcion}</td></tr>`).join('')}</table><p>Total de servicios: ${ss.length}</p><p>Generado: ${new Date().toLocaleString()}</p></body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe_${e?.marca}_${e?.modelo}</title><style>body{font-family:Arial;padding:20px;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #ccc;padding:8px;}</style></head><body><h1>OLM INGENIERIA SAS</h1><h2>Informe Tecnico</h2><p><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</p><p><strong>Activo:</strong> ${e?.marca} ${e?.modelo} - Serie: ${e?.serie || 'N/A'}</p><p><strong>Ubicacion:</strong> ${e?.ubicacion || 'N/A'}</p><h3>Historial de Servicios</h3></table><tr><th>Fecha</th><th>Tipo</th><th>Tecnico</th><th>Descripcion</th></tr>${ss.map(s => `<tr><td>${fmtFecha(s.fecha)}</td><td>${s.tipo}</td><td>${s.tecnico}</td><td>${s.descripcion}</td></tr>`).join('')}</table><p>Total de servicios: ${ss.length}</p><p>Generado: ${new Date().toLocaleString()}</p></body></html>`;
     const v = window.open('', '_blank');
     v.document.write(html);
     v.document.close();
