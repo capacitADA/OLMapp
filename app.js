@@ -874,9 +874,6 @@ async function exportarInformeJMC(eid) {
     const fechaArch  = dd && mm && aa ? `${dd}-${mm}-${aa}` : new Date().toISOString().split('T')[0];
     const nombreArch = `TK_${ticket || 'sin-ticket'}_SAP_${sap || 'sin-sap'}_${fechaArch}`;
 
-    const MESES_TEXTO = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-    const fechaTexto = (dd && mm && aa) ? `${parseInt(dd)} ${MESES_TEXTO[parseInt(mm)-1]} 20${aa}` : '';
-
     const tiendaActual      = getTiendaJMC(sap);
     const nomSol    = document.getElementById('jNombreSol')?.value  || '';
     const cargoSol  = document.getElementById('jCargo')?.value      || '';
