@@ -874,9 +874,10 @@ async function exportarInformeJMC(eid) {
     const fechaArch  = dd && mm && aa ? `${dd}-${mm}-${aa}` : new Date().toISOString().split('T')[0];
     const nombreArch = `TK_${ticket || 'sin-ticket'}_SAP_${sap || 'sin-sap'}_${fechaArch}`;
 
-    const tiendaActual      = getTiendaJMC(sap);
-    const coordinadorActual = tiendaActual ? tiendaActual.coordinador : document.getElementById('jNombreSol')?.value || '';
+    const MESES_TEXTO = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+    const fechaTexto = (dd && mm && aa) ? `${parseInt(dd)} ${MESES_TEXTO[parseInt(mm)-1]} 20${aa}` : '';
 
+    const tiendaActual      = getTiendaJMC(sap);
     const nomSol    = document.getElementById('jNombreSol')?.value  || '';
     const cargoSol  = document.getElementById('jCargo')?.value      || '';
     const nomTienda = document.getElementById('jTienda')?.value     || '';
@@ -903,77 +904,74 @@ async function exportarInformeJMC(eid) {
     const LOGO_ARA = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/logo_ara.png';
     const LOGO_JM  = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/JEronimo_LOGO.png';
 
-    const chk = (val, opt) => val === opt
-        ? '<td style="border:1px solid #333;text-align:center;padding:4px;background:#0d4a3a;color:white;font-weight:700;">■</td>'
-        : '<td style="border:1px solid #333;text-align:center;padding:4px;">□</td>';
+    const G = `background:#ddd;font-weight:700;font-size:8px;`;
+    const B = `border:1px solid #555;padding:2px 4px;vertical-align:middle;`;
 
-    const evalRow = (label, isSection) => `
-        <tr>
-            ${isSection ? `<td rowspan="2" style="border:1px solid #333;padding:4px;font-weight:700;font-size:9px;vertical-align:middle;">${label}</td>` : ''}
-        </tr>`;
+    const chkBox = (sel) => `<span style="display:inline-block;width:9px;height:9px;border:1.5px solid #333;background:${sel?'#333':'white'};vertical-align:middle;margin-right:3px;"></span>`;
 
-    // Filas de evaluacion del servicio
-    const evalRows = [
-        { seccion: 'SEGURIDAD',            items: [
+    const optsAsi   = ['Reparacion','Garantia','Ajuste','Modificacion','Servicio','Mejora','Combinacion'];
+    const optsFalla = ['Mecanicas','Material','Instrumentos','Electricas','Influencia Externa'];
+    const optsCausa = ['Diseno','Fabricacion/Instalacion','Operacion/Mantenimiento','Administracion','Desconocida'];
+
+    const evalGrupos = [
+        { sec:'SEGURIDAD', items:[
             'La labor realizada genera una alta riesgo de accidentalidad para los clientes y/o colaboradores',
-            'La labor realizada ofrece algun riesgo para la integridad del equipo'
-        ]},
-        { seccion: 'FUNCIONAMIENTO',       items: [
+            'La labor realizada ofrece algun riesgo para la integridad del equipo']},
+        { sec:'FUNCIONAMIENTO', items:[
             'La falla reportada fue solucionada con el trabajo realizado',
-            'Para operar y/o asear el equipo o area intervenida se siguen los pasos normales de manejo anteriores a la asistencia'
-        ]},
-        { seccion: 'CALIDAD',              items: [
-            'La calidad del trabajo esta de acuerdo a la requerida por el personal o el equipo'
-        ]},
-        { seccion: 'LIMPIEZA Y ORGANIZACION', items: [
+            'Para operar y/o asear el equipo o area intervenida se siguen los pasos normales de manejo anteriores a la asistencia']},
+        { sec:'CALIDAD', items:[
+            'La calidad del trabajo esta de acuerdo a la requerida por el personal o el equipo']},
+        { sec:'LIMPIEZA Y ORGANIZACION', items:[
             'El equipo o area intervenida se dejo armado y/o organizado como se encontraba en un inicio',
-            'Los escombros y suciedad generada por el tecnico fue aseado'
-        ]},
-        { seccion: 'CAPACITACION',         items: [
+            'Los escombros y suciedad generada por el tecnico fue aseado']},
+        { sec:'CAPACITACION', items:[
             'Se indico la causa de la novedad al personal que recibio el trabajo',
             'Se indico como prevenir que el problema se vuelva a presentar',
-            'Se indico como actuar en caso de que el problema se vuelva a presentar'
-        ]}
+            'Se indico como actuar en caso de que el problema se vuelva a presentar']}
     ];
-
     let evalHTML = '';
-    evalRows.forEach(grupo => {
-        grupo.items.forEach((item, idx) => {
+    evalGrupos.forEach(g => {
+        g.items.forEach((item, idx) => {
             evalHTML += `<tr>
-                ${idx === 0 ? `<td rowspan="${grupo.items.length}" style="border:1px solid #333;padding:4px;font-weight:700;font-size:9px;vertical-align:middle;">${grupo.seccion}</td>` : ''}
-                <td style="border:1px solid #333;padding:4px;font-size:9px;">${item}</td>
-                <td style="border:1px solid #333;text-align:center;padding:4px;font-size:11px;">✗</td>
-                <td style="border:1px solid #333;text-align:center;padding:4px;"></td>
+                ${idx===0 ? `<td rowspan="${g.items.length}" style="${B}font-weight:700;font-style:italic;font-size:8px;">${g.sec}</td>` : ''}
+                <td style="${B}font-size:7.5px;">${item}</td>
+                <td style="${B}text-align:center;font-size:11px;">&#10007;</td>
+                <td style="${B}"></td>
             </tr>`;
         });
     });
 
+    const lineRow = (txt='') => `<tr><td style="border-left:1px solid #555;border-right:1px solid #555;border-top:none;border-bottom:1px solid #aaa;height:12px;padding:1px 4px;font-size:8px;">${txt}</td></tr>`;
+
     const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>${nombreArch}</title>
 <style>
-  body { font-family: Arial, sans-serif; font-size: 9px; margin: 0; padding: 14px; color: #111; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
-  td, th { border: 1px solid #333; padding: 3px 5px; vertical-align: top; }
-  .hdr-sec { background: #0d4a3a; color: white; font-weight: 700; text-align: center; font-size: 9px; padding: 3px; letter-spacing: 0.5px; }
-  .lbl { font-size: 8px; color: #555; display: block; margin-bottom: 1px; }
-  .val { font-size: 9px; font-weight: 700; }
-  .ticket-box { background: #fff; border: 2px solid #333; text-align: center; }
-  .ticket-num { font-size: 22px; font-weight: 900; color: #1a1a6e; letter-spacing: 1px; }
-  .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-  .top-header-center { text-align: center; flex: 1; }
-  .top-header-center h2 { margin: 0; font-size: 13px; font-weight: 900; }
-  .top-header-center h3 { margin: 0; font-size: 9px; font-weight: 400; }
-  .logo-ara { height: 42px; }
-  .logo-jm  { height: 38px; }
-  .anexo { font-size: 8px; text-align: right; font-weight: 700; }
-  @media print { body { padding: 8px; } }
+  @page { size: A4; margin: 10mm; }
+  @media print { html,body { margin:0;padding:0; } }
+  body { font-family:Arial,sans-serif; font-size:8px; margin:0; padding:8px; color:#111; }
+  table { width:100%; border-collapse:collapse; margin-top:-1px; }
+  td,th { border:1px solid #555; padding:2px 4px; vertical-align:middle; }
+  .hdr-dark { background:#555; color:white; font-weight:700; text-align:center; font-size:8px; padding:2px; letter-spacing:0.4px; }
+  .hdr-light { background:#bbb; color:#111; font-weight:700; text-align:center; font-size:8px; padding:2px; }
+  .glbl { background:#ddd; font-size:7px; font-weight:700; }
+  .val  { font-size:8px; font-weight:700; }
+  .opt  { font-size:8px; text-align:center; white-space:nowrap; }
+  .top-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; }
+  .top-center { text-align:center; flex:1; }
+  .top-center h2 { margin:0; font-size:12px; font-weight:900; }
+  .top-center h3 { margin:0; font-size:8px; font-weight:400; }
+  .anexo { font-size:7px; font-weight:700; text-align:right; }
+  .logo-ara { height:38px; }
+  .logo-jm  { height:34px; }
+  .firma-tec { font-family:'Brush Script MT','Segoe Script','Comic Sans MS',cursive; font-size:15px; color:#1a1a6e; }
 </style>
 </head><body>
 
 <div class="anexo">ANEXO 3</div>
-<div class="top-header">
+<div class="top-hdr">
   <img src="${LOGO_ARA}" class="logo-ara" onerror="this.style.display='none'">
-  <div class="top-header-center">
+  <div class="top-center">
     <h2>JERONIMO MARTINS COLOMBIA</h2>
     <h3>FORMATO UNICO DE SOPORTE — FF-JMC-DT-06</h3>
   </div>
@@ -982,156 +980,158 @@ async function exportarInformeJMC(eid) {
 
 <!-- CONTRATISTA -->
 <table>
-  <tr><td colspan="6" class="hdr-sec">CONTRATISTA</td></tr>
+  <tr><td colspan="4" class="hdr-dark">CONTRATISTA</td></tr>
   <tr>
-    <td style="width:18%;"><span class="lbl">Razon social</span><span class="val">OLM INGENIERIA SAS</span></td>
-    <td style="width:20%;"><span class="lbl">N° NIT</span><span class="val">901.050.468-5</span></td>
-    <td style="width:22%;"><span class="lbl">Contacto</span><span class="val">Oscar Leonardo Martinez</span></td>
-    <td style="width:18%;"><span class="lbl">Telefono</span><span class="val">311 4831801</span></td>
-    <td colspan="2"></td>
+    <td class="glbl" style="width:16%;">Razon social</td>
+    <td style="width:34%;"><span class="val">OLM INGENIERIA SAS</span></td>
+    <td class="glbl" style="width:12%;">N&deg; NIT</td>
+    <td><span class="val">901.050.468-5</span></td>
+  </tr>
+  <tr>
+    <td class="glbl">Contacto</td>
+    <td><span class="val">Oscar Leonardo Martinez</span></td>
+    <td class="glbl">Telefono</td>
+    <td><span class="val">311 4831801</span></td>
   </tr>
 </table>
 
-<!-- SOLICITANTE Y TIENDA -->
-<table style="margin-top:-1px;">
-  <tr><td colspan="6" class="hdr-sec">SOLICITANTE Y TIENDA BENEFICIARIA</td></tr>
+<!-- SOLICITANTE Y TIENDA: 8 columnas -->
+<table>
+  <tr><td colspan="8" class="hdr-dark">SOLICITANTE Y TIENDA BENEFICIARIA</td></tr>
   <tr>
-    <td colspan="2"><span class="lbl">Nombre del solicitante</span><span class="val">${nomSol}</span></td>
-    <td colspan="2"><span class="lbl">Cargo</span><span class="val">${cargoSol}</span></td>
-    <td colspan="2"></td>
+    <td class="glbl" style="width:13%;">Nombre del solicitante</td>
+    <td colspan="4"><span class="val">${nomSol}</span></td>
+    <td class="glbl" style="width:8%;">Cargo</td>
+    <td colspan="2"><span class="val">${cargoSol}</span></td>
   </tr>
   <tr>
-    <td colspan="2"><span class="lbl">Nombre de la tienda</span><span class="val">${nomTienda}</span></td>
-    <td><span class="lbl">N° Tienda</span><span class="val">${sap}</span></td>
-    <td class="ticket-box" colspan="2">
-      <span class="lbl" style="color:#555;">N° TICKET:</span>
-      <div class="ticket-num">${ticket}</div>
-    </td>
-    <td><span class="lbl">Fecha</span><span class="val">${dd}/${mm}/${aa}</span></td>
+    <td class="glbl">Nombre de la tienda</td>
+    <td style="width:17%;"><span class="val">${nomTienda}</span></td>
+    <td class="glbl" style="width:9%;">N&deg; Tienda</td>
+    <td style="width:7%;"><span class="val">${sap}</span></td>
+    <td style="background:#c0392b;color:white;font-weight:700;font-size:7px;text-align:center;width:10%;">N&deg; TICKET:</td>
+    <td style="width:12%;font-weight:900;font-size:11px;text-align:center;"><span class="val">${ticket}</span></td>
+    <td class="glbl" rowspan="2" style="text-align:center;width:6%;">Fecha</td>
+    <td rowspan="2" style="text-align:center;font-weight:700;font-size:8px;width:14%;">${fechaTexto}</td>
   </tr>
   <tr>
-    <td colspan="2"><span class="lbl">Municipio</span><span class="val">${municipio}</span></td>
-    <td colspan="2"><span class="lbl">Departamento</span><span class="val">${depto}</span></td>
-    <td colspan="2"></td>
+    <td class="glbl">Municipio</td>
+    <td colspan="2"><span class="val">${municipio}</span></td>
+    <td colspan="2" class="glbl">Departamento</td>
+    <td><span class="val">${depto}</span></td>
   </tr>
 </table>
 
-<!-- INFORMACION TECNICA -->
-<table style="margin-top:-1px;">
-  <tr><td colspan="6" class="hdr-sec">INFORMACION AREA TECNICA</td></tr>
+<!-- INFO TECNICA -->
+<table>
+  <tr><td colspan="6" class="hdr-dark">INFORMACION AREA TECNICA</td></tr>
   <tr>
-    <td colspan="2"><span class="lbl">Nombre del equipo</span><span class="val">${nomEquipo}</span></td>
-    <td colspan="2"><span class="lbl">Marca</span><span class="val">${marcaEq}</span></td>
-    <td colspan="2"><span class="lbl">Serial</span><span class="val">${serialEq}</span></td>
+    <td class="glbl" style="width:16%;">Nombre del equipo</td>
+    <td style="width:28%;"><span class="val">${nomEquipo}</span></td>
+    <td class="glbl" style="width:10%;">Marca</td>
+    <td style="width:16%;"><span class="val">${marcaEq}</span></td>
+    <td class="glbl" style="width:10%;">Serial</td>
+    <td><span class="val">${serialEq}</span></td>
   </tr>
 </table>
 
-<!-- TIPO DE ASISTENCIA -->
-<table style="margin-top:-1px;">
-  <tr><td colspan="8" class="hdr-sec">TIPO DE ASISTENCIA</td></tr>
-  <tr style="text-align:center;">
-    ${['Reparacion','Garantia','Ajuste','Modificacion','Servicio','Mejora','Combinacion'].map(t =>
-      `<td style="border:1px solid #333;padding:3px;font-size:9px;">${tipoAsi===t?'■':''} ${t}</td>`
-    ).join('')}
-  </tr>
+<!-- TIPO ASISTENCIA -->
+<table>
+  <tr><td colspan="7" class="hdr-light">TIPO DE ASISTENCIA</td></tr>
+  <tr>${optsAsi.map(t=>`<td class="opt">${chkBox(tipoAsi===t)}${t}</td>`).join('')}</tr>
 </table>
 
-<!-- TIPO DE FALLA -->
-<table style="margin-top:-1px;">
-  <tr><td colspan="6" class="hdr-sec">TIPO DE FALLA</td></tr>
-  <tr style="text-align:center;">
-    ${['Mecanicas','Material','Instrumentos','Electricas','Influencia Externa'].map(t =>
-      `<td style="border:1px solid #333;padding:3px;font-size:9px;">${tipoFalla===t?'■':''} ${t}</td>`
-    ).join('')}
-  </tr>
+<!-- TIPO FALLA -->
+<table>
+  <tr><td colspan="5" class="hdr-light">TIPO DE FALLA</td></tr>
+  <tr>${optsFalla.map(t=>`<td class="opt">${chkBox(tipoFalla===t)}${t}</td>`).join('')}</tr>
 </table>
 
-<!-- CAUSA DE FALLAS -->
-<table style="margin-top:-1px;">
-  <tr><td colspan="6" class="hdr-sec">CAUSA DE FALLAS BASICAS</td></tr>
-  <tr style="text-align:center;">
-    ${['Diseno','Fabricacion/Instalacion','Operacion/Mantenimiento','Administracion','Desconocida'].map(t =>
-      `<td style="border:1px solid #333;padding:3px;font-size:9px;">${causa===t?'■':''} ${t}</td>`
-    ).join('')}
-  </tr>
+<!-- CAUSA -->
+<table>
+  <tr><td colspan="5" class="hdr-light">CAUSA DE FALLAS BASICAS</td></tr>
+  <tr>${optsCausa.map(t=>`<td class="opt">${chkBox(causa===t)}${t}</td>`).join('')}</tr>
 </table>
 
-<!-- DESCRIPCION / DIAGNOSTICO / REPUESTOS / OBS -->
-<table style="margin-top:-1px;">
-  <tr>
-    <td colspan="6"><span class="lbl">Descripcion de la falla funcionario tienda:</span>
-      <div style="min-height:28px;font-size:9px;">${descFalla}</div></td>
-  </tr>
-  <tr>
-    <td colspan="6"><span class="lbl">Diagnostico del tecnico:</span>
-      <div style="min-height:36px;font-size:9px;">${diag}</div></td>
-  </tr>
-  <tr>
-    <td colspan="6"><span class="lbl">Repuestos cambiados:</span>
-      <div style="min-height:22px;font-size:9px;">${repuestos || 'NA'}</div></td>
-  </tr>
-  <tr>
-    <td colspan="6"><span class="lbl">Observaciones:</span>
-      <div style="min-height:28px;font-size:9px;">${obs}</div></td>
-  </tr>
+<!-- CAMPOS LIBRES CON LINEAS -->
+<table>
+  <tr><td class="glbl" style="border-bottom:none;padding:2px 4px;">Descripcion de la falla funcionario tienda:</td></tr>
+  ${lineRow(descFalla)}${lineRow()}${lineRow()}
+  <tr><td class="glbl" style="border-top:1px solid #555;border-bottom:none;padding:2px 4px;">Diagnostico del tecnico:</td></tr>
+  ${lineRow(diag)}${lineRow()}${lineRow()}${lineRow()}${lineRow()}${lineRow()}${lineRow()}
+  <tr><td class="glbl" style="border-top:1px solid #555;border-bottom:none;padding:2px 4px;">Repuestos cambiados:</td></tr>
+  ${lineRow(repuestos||'NA')}${lineRow()}${lineRow()}
+  <tr><td class="glbl" style="border-top:1px solid #555;border-bottom:none;padding:2px 4px;">Observaciones:</td></tr>
+  ${lineRow(obs)}${lineRow()}${lineRow()}${lineRow()}
 </table>
 
-<!-- EVALUACION DEL SERVICIO -->
-<table style="margin-top:-1px;">
-  <tr><td colspan="4" class="hdr-sec">EVALUACION DEL SERVICIO</td></tr>
+<!-- EVALUACION -->
+<table>
+  <tr><td colspan="4" class="hdr-dark">EVALUACION DEL SERVICIO</td></tr>
   <tr>
-    <th style="width:18%;font-size:8px;">PARAMETROS DE EVALUACION</th>
-    <th style="font-size:8px;"></th>
-    <th style="width:10%;text-align:center;font-size:8px;">CUMPLE</th>
-    <th style="width:10%;text-align:center;font-size:8px;">NO CUMPLE</th>
+    <th class="glbl" style="width:16%;text-align:center;">PARAMETROS DE EVALUACION</th>
+    <th class="glbl"></th>
+    <th class="glbl" style="width:9%;text-align:center;">CUMPLE</th>
+    <th class="glbl" style="width:9%;text-align:center;">NO CUMPLE</th>
   </tr>
   ${evalHTML}
 </table>
 
 <!-- CONSTANCIA -->
-<table style="margin-top:-1px;">
-  <tr><td colspan="6" class="hdr-sec">CONSTANCIA REALIZACION ASISTENCIA</td></tr>
-  <tr style="text-align:center;font-size:8px;font-weight:700;">
-    <td>Contratistas</td><td>Cedula</td><td>Hora de entrada</td><td>Hora de salida</td><td colspan="2">Datos Funcionario de la tienda</td>
+<table>
+  <tr><td colspan="6" class="hdr-dark">CONSTANCIA REALIZACION ASISTENCIA</td></tr>
+  <tr>
+    <td class="glbl" style="width:18%;text-align:center;">Contratistas</td>
+    <td class="glbl" style="width:12%;text-align:center;">Cedula</td>
+    <td class="glbl" style="width:13%;text-align:center;">Hora de entrada</td>
+    <td class="glbl" style="width:13%;text-align:center;">Hora de salida</td>
+    <td class="glbl" style="width:8%;text-align:center;">Datos</td>
+    <td class="glbl" style="text-align:center;">Funcionario de la tienda</td>
   </tr>
   <tr>
-    <td style="font-size:9px;">${sesionActual?.nombre || ''}</td>
-    <td style="font-size:9px;">${sesionActual?.cedula || ''}</td>
-    <td style="text-align:center;font-size:9px;">${hEntrada}</td>
-    <td style="text-align:center;font-size:9px;">${hSalida}</td>
-    <td style="font-size:9px;">
-      <span class="lbl">Nombre:</span>${funcNombre}<br>
-      <span class="lbl">Cedula:</span>${funcCedula}
+    <td style="font-size:8px;">${sesionActual?.nombre||''}</td>
+    <td style="font-size:8px;text-align:center;">${sesionActual?.cedula||''}</td>
+    <td style="font-size:8px;text-align:center;">${hEntrada}</td>
+    <td style="font-size:8px;text-align:center;">${hSalida}</td>
+    <td class="glbl">Nombre:</td>
+    <td style="font-size:8px;">${funcNombre}</td>
+  </tr>
+  <tr>
+    <td></td><td></td><td></td><td></td>
+    <td class="glbl">Cedula:</td>
+    <td style="font-size:8px;">${funcCedula}</td>
+  </tr>
+  <tr>
+    <td></td><td></td><td></td><td></td>
+    <td class="glbl">Cargo:</td>
+    <td style="font-size:8px;">${funcCargo}</td>
+  </tr>
+  <tr>
+    <td></td><td></td><td></td><td></td>
+    <td class="glbl">SAP:</td>
+    <td style="font-size:8px;">${funcSAP}</td>
+  </tr>
+  <tr>
+    <td class="glbl">Firma Tecnico Encargado:</td>
+    <td colspan="3" style="padding:3px 6px;">
+      <span class="firma-tec">${sesionActual?.nombre||''}</span>
     </td>
-    <td style="font-size:9px;">
-      <span class="lbl">Cargo:</span>${funcCargo}<br>
-      <span class="lbl">SAP:</span>${funcSAP}
+    <td class="glbl" rowspan="2" style="text-align:center;vertical-align:middle;">Firma:</td>
+    <td rowspan="2" style="vertical-align:middle;text-align:center;">
+      ${firmaDataUrl ? `<img src="${firmaDataUrl}" style="max-height:44px;">` : ''}
     </td>
+  </tr>
+  <tr>
+    <td class="glbl">Cargo:</td>
+    <td colspan="3" style="font-size:8px;">${sesionActual?.cargo||''}</td>
   </tr>
 </table>
 
-<!-- FIRMA -->
-<table style="margin-top:-1px;">
-  <tr>
-    <td style="width:50%;padding:6px;">
-      <span class="lbl">Firma Tecnico Encargado:</span>
-      <div style="font-size:9px;font-weight:700;margin-bottom:4px;">${sesionActual?.nombre || ''}</div>
-      <span class="lbl">Cargo:</span>
-    </td>
-    <td style="width:50%;padding:6px;">
-      <span class="lbl">Firma:</span>
-      ${firmaDataUrl ? `<img src="${firmaDataUrl}" style="height:48px;display:block;margin-top:2px;">` : '<div style="height:48px;"></div>'}
-    </td>
-  </tr>
-</table>
-
-<div style="font-size:7px;color:#888;text-align:right;margin-top:4px;">
-  Documento generado por OLM Ingenieria SAS - ${new Date().toLocaleString()}
+<div style="font-size:7px;color:#888;text-align:right;margin-top:3px;">
+  Documento generado por capacitADA - ${new Date().toLocaleString()}
 </div>
-
 </body></html>`;
 
-    // Guardar en Drive como PDF
     const guardado = await driveUploadPDF(html, nombreArch + '.pdf');
     if (guardado) {
         toast('✅ Informe guardado en Drive como PDF');
@@ -1139,19 +1139,14 @@ async function exportarInformeJMC(eid) {
         toast('⚠️ No se pudo guardar en Drive');
     }
 
-    // Abrir para impresión (respaldo)
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const ventana = window.open(url, '_blank');
-    if (ventana) {
-        ventana.onload = () => { ventana.print(); };
-    }
+    if (ventana) { ventana.onload = () => { ventana.print(); }; }
 
     closeModal();
     setTimeout(() => {
-        if (_servicioEidActual) {
-            modalNuevoServicio(_servicioEidActual);
-        }
+        if (_servicioEidActual) { modalNuevoServicio(_servicioEidActual); }
     }, 500);
 }
 
