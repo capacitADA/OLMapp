@@ -930,9 +930,7 @@ async function exportarInformeJMC(eid) {
         tbl:      'width:100%;border-collapse:collapse;margin-top:-1px;',
     };
 
-    const chkMark = (sel) => sel
-        ? `<span style="display:inline-block;width:9px;height:9px;background:#222;border:1.5px solid #222;vertical-align:middle;margin-right:2px;${PC}"></span>`
-        : `<span style="display:inline-block;width:9px;height:9px;background:white;border:1.5px solid #333;vertical-align:middle;margin-right:2px;"></span>`;
+   
 
     const chkMark = (sel) => sel
         ? `<span style="display:inline-block;width:10px;height:10px;background:#222;border:1.5px solid #222;vertical-align:middle;margin-right:3px;"></span>`
