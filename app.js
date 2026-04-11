@@ -910,25 +910,26 @@ async function exportarInformeJMC(eid) {
     }
     const [logo_ara_b64, logo_jm_b64] = await Promise.all([imgToBase64(LOGO_ARA), imgToBase64(LOGO_JM)]);
 
-    // estilos inline reutilizables
+    // estilos inline reutilizables — print-color-adjust:exact para forzar fondos al imprimir
+    const PC = '-webkit-print-color-adjust:exact;print-color-adjust:exact;';
     const S = {
-        hdrDark:  'background:#555555;color:white;font-weight:700;text-align:center;font-size:8pt;padding:3px 4px;border:1px solid #333;',
-        hdrLight: 'background:#bbbbbb;color:#111;font-weight:700;text-align:center;font-size:8pt;padding:3px 4px;border:1px solid #333;',
-        glbl:     'background:#dddddd;font-size:7pt;font-weight:700;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
-        cell:     'font-size:8pt;font-weight:700;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
-        opt:      'font-size:8pt;text-align:center;padding:3px 4px;border:1px solid #333;white-space:nowrap;',
-        lineR:    'height:13px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #aaa;padding:1px 4px;font-size:8pt;',
-        lineL:    'height:13px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #333;padding:1px 4px;font-size:8pt;',
-        evalSec:  'font-weight:700;font-style:italic;font-size:8pt;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
-        evalTxt:  'font-size:7pt;padding:2px 4px;border:1px solid #333;',
-        evalChk:  'text-align:center;font-size:13pt;font-weight:900;padding:2px 4px;border:1px solid #333;',
-        evalNo:   'padding:2px 4px;border:1px solid #333;',
+        hdrDark:  `background:#555555;color:white;font-weight:700;text-align:center;font-size:7.5pt;padding:2px 3px;border:1px solid #333;${PC}`,
+        hdrLight: `background:#bbbbbb;color:#111;font-weight:700;text-align:center;font-size:7.5pt;padding:2px 3px;border:1px solid #333;${PC}`,
+        glbl:     `background:#dddddd;font-size:6.5pt;font-weight:700;padding:1px 3px;border:1px solid #333;vertical-align:middle;${PC}`,
+        cell:     'font-size:7.5pt;font-weight:700;padding:1px 3px;border:1px solid #333;vertical-align:middle;',
+        opt:      'font-size:7pt;text-align:center;padding:2px 3px;border:1px solid #333;white-space:nowrap;',
+        lineR:    'height:11px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #aaa;padding:1px 3px;font-size:7pt;',
+        lineL:    'height:11px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #333;padding:1px 3px;font-size:7pt;',
+        evalSec:  'font-weight:700;font-style:italic;font-size:7pt;padding:1px 3px;border:1px solid #333;vertical-align:middle;',
+        evalTxt:  'font-size:6.5pt;padding:1px 3px;border:1px solid #333;',
+        evalChk:  'text-align:center;font-size:10pt;font-weight:900;padding:1px 3px;border:1px solid #333;',
+        evalNo:   'padding:1px 3px;border:1px solid #333;',
         tbl:      'width:100%;border-collapse:collapse;margin-top:-1px;',
     };
 
     const chkMark = (sel) => sel
-        ? `<span style="display:inline-block;width:10px;height:10px;background:#222;border:1.5px solid #222;vertical-align:middle;margin-right:3px;"></span>`
-        : `<span style="display:inline-block;width:10px;height:10px;background:white;border:1.5px solid #333;vertical-align:middle;margin-right:3px;"></span>`;
+        ? `<span style="display:inline-block;width:9px;height:9px;background:#222;border:1.5px solid #222;vertical-align:middle;margin-right:2px;${PC}"></span>`
+        : `<span style="display:inline-block;width:9px;height:9px;background:white;border:1.5px solid #333;vertical-align:middle;margin-right:2px;"></span>`;
 
     const lineRow = (txt='', last=false) =>
         `<tr><td style="${last ? S.lineL : S.lineR}">${txt}</td></tr>`;
@@ -972,9 +973,9 @@ async function exportarInformeJMC(eid) {
     const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>${nombreArch}</title>
 <style>
-  @page { size: A4; margin: 10mm; }
+  @page { size: A4; margin: 7mm; }
   @media print { html,body{margin:0;padding:0;} }
-  body { font-family: Arial, sans-serif; margin: 0; padding: 6px; }
+  body { font-family: Arial, sans-serif; margin: 0; padding: 4px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .firma-tec { font-family: 'Brush Script MT','Segoe Script','Comic Sans MS',cursive; font-size:16pt; color:#1a1a6e; }
 </style>
 </head><body>
@@ -1069,11 +1070,11 @@ async function exportarInformeJMC(eid) {
   <tr><td style="${S.glbl};border-bottom:none;padding:2px 4px;">Descripcion de la falla funcionario tienda:</td></tr>
   ${lineRow(descFalla)}${lineRow()}${lineRow('', true)}
   <tr><td style="${S.glbl};border-top:1px solid #333;border-bottom:none;padding:2px 4px;">Diagnostico del tecnico:</td></tr>
-  ${lineRow(diag)}${lineRow()}${lineRow()}${lineRow()}${lineRow()}${lineRow()}${lineRow('', true)}
+  ${lineRow(diag)}${lineRow()}${lineRow()}${lineRow()}${lineRow('', true)}
   <tr><td style="${S.glbl};border-top:1px solid #333;border-bottom:none;padding:2px 4px;">Repuestos cambiados:</td></tr>
   ${lineRow(repuestos||'NA')}${lineRow()}${lineRow('', true)}
   <tr><td style="${S.glbl};border-top:1px solid #333;border-bottom:none;padding:2px 4px;">Observaciones:</td></tr>
-  ${lineRow(obs)}${lineRow()}${lineRow()}${lineRow('', true)}
+  ${lineRow(obs)}${lineRow()}${lineRow('', true)}
 </table>
 
 <!-- EVALUACION -->
@@ -1355,15 +1356,15 @@ function generarInformePDF(eid) {
             ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;">${(s.fotos||[]).map(f=>`<img src="${f}" style="height:80px;width:80px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">`).join('')}</div>`
             : '';
         const proxHTML = (s.tipo === 'Mantenimiento' && s.proximoMantenimiento)
-            ? `<div style="color:#b45309;font-size:16px;margin-top:4px;">&#128197; Proximo mantenimiento: ${fmtFecha(s.proximoMantenimiento)}</div>`
+            ? `<div style="color:#b45309;font-size:16px;margin-top:6px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">&#128197; Proximo mantenimiento: ${fmtFecha(s.proximoMantenimiento)}</div>`
             : '';
-        return `<div style="border:1px solid #d1d5db;border-radius:8px;padding:12px;margin-bottom:10px;page-break-inside:avoid;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                <span style="background:${s.tipo==='Mantenimiento'?'#1d4ed8':s.tipo==='Reparacion'?'#dc2626':'#15803d'};color:white;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;">${s.tipo}</span>
-                <span style="font-size:16px;color:#555;">${fmtFecha(s.fecha)}</span>
+        return `<div style="border:1px solid #d1d5db;border-radius:8px;padding:14px;margin-bottom:12px;page-break-inside:avoid;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="background:${s.tipo==='Mantenimiento'?'#1d4ed8':s.tipo==='Reparacion'?'#dc2626':'#15803d'};color:white;padding:3px 14px;border-radius:12px;font-size:15px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact;">${s.tipo}</span>
+                <span style="font-size:15px;color:#555;">${fmtFecha(s.fecha)}</span>
             </div>
-            <div style="font-size:16px;color:#374151;margin:3px 0;">&#128295; ${s.tecnico}</div>
-            <div style="font-size:16px;color:#111;margin:3px 0;">${s.descripcion}</div>
+            <div style="font-size:16px;color:#374151;margin:4px 0;">&#128295; ${s.tecnico}</div>
+            <div style="font-size:16px;color:#111;margin:4px 0;">${s.descripcion}</div>
             ${fotosHTML}${proxHTML}
         </div>`;
     }).join('');
@@ -1375,25 +1376,25 @@ function generarInformePDF(eid) {
   @media print{html,body{margin:0;padding:0;}}
   body{font-family:Arial,sans-serif;font-size:11px;color:#111;margin:0;padding:0;}
 </style></head><body>
-<div style="display:flex;align-items:center;border-bottom:3px solid #0d4a3a;padding-bottom:8px;margin-bottom:10px;">
-  <img src="${LOGO}" style="height:56px;margin-right:16px;" onerror="this.style.display='none'">
+<div style="display:flex;align-items:center;border-bottom:3px solid #0d4a3a;padding-bottom:10px;margin-bottom:12px;">
+  <img src="${LOGO}" style="height:64px;margin-right:18px;" onerror="this.style.display='none'">
   <div>
-   // <div style="font-size:18px;font-weight:900;color:#0d4a3a;">OLM INGENIERIA SAS</div>
-    <div style="font-size:11px;color:#555;">Plantas y Sistemas Electricos &nbsp;|&nbsp; 📞 311 483 1801</div>
-    <div style="font-size:14px;font-weight:700;margin-top:2px;">INFORME TECNICO</div>
+    <div style="font-size:22px;font-weight:900;color:#0d4a3a;">OLM INGENIERIA SAS</div>
+    <div style="font-size:14px;color:#555;">Plantas y Sistemas Electricos &nbsp;|&nbsp; 📞 311 483 1801</div>
+    <div style="font-size:18px;font-weight:700;margin-top:4px;">INFORME TECNICO</div>
   </div>
 </div>
-<table style="width:100%;border-collapse:collapse;margin-bottom:10px;">
+<table style="width:100%;border-collapse:collapse;margin-bottom:12px;">
   <tr>
-    <td style="padding:4px 8px;background:#f1f5f9;border:1px solid #ddd;width:50%;font-size:11px;"><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</td>
-    <td style="padding:4px 8px;background:#f1f5f9;border:1px solid #ddd;font-size:11px;"><strong>Generado:</strong> ${new Date().toLocaleString()}</td>
+    <td style="padding:6px 10px;background:#f1f5f9;border:1px solid #ddd;width:50%;font-size:14px;"><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</td>
+    <td style="padding:6px 10px;background:#f1f5f9;border:1px solid #ddd;font-size:14px;"><strong>Generado:</strong> ${new Date().toLocaleString()}</td>
   </tr>
   <tr>
-    <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;" colspan="2"><strong>Activo:</strong> ${e?.tipo||''} ${e?.marca||''} ${e?.modelo||''} &nbsp;&nbsp; <strong>Serial:</strong> ${e?.serie || 'N/A'} &nbsp;&nbsp; <strong>Ubicacion:</strong> ${e?.ubicacion||''}</td>
+    <td style="padding:6px 10px;border:1px solid #ddd;font-size:14px;" colspan="2"><strong>Activo:</strong> ${e?.tipo||''} ${e?.marca||''} ${e?.modelo||''} &nbsp;&nbsp; <strong>Serial:</strong> ${e?.serie || 'N/A'} &nbsp;&nbsp; <strong>Ubicacion:</strong> ${e?.ubicacion||''}</td>
   </tr>
 </table>
-<div style="background:#0d4a3a;color:white;font-weight:700;font-size:12px;padding:5px 10px;border-radius:4px;margin-bottom:8px;">
-  HISTORIAL DE SERVICIOS &nbsp;&nbsp; <span style="font-weight:400;font-size:10px;">${ss.length} registro(s)</span>
+<div style="background:#0d4a3a;color:white;font-weight:700;font-size:15px;padding:7px 12px;border-radius:4px;margin-bottom:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+  HISTORIAL DE SERVICIOS &nbsp;&nbsp; <span style="font-weight:400;font-size:13px;">${ss.length} registro(s)</span>
 </div>
 ${serviciosHTML}
 </body></html>`;
@@ -1508,10 +1509,11 @@ function manejarRutaQR() {
     if (botnav) botnav.style.display = 'none';
     main.style.background = 'white';
     const waMsg = encodeURIComponent(
-    `Hola Oscar,\n\nNecesito ayuda con el equipo:\n` +
-    `${e?.tipo ? e.tipo + ' ' : ''}${e?.marca} ${e?.modelo}\n` +
-    `Ubicación: ${e?.ubicacion || 'N/A'}\n\n` +
-    `Podrías contactarme? Gracias.`
+    'Hola Oscar, necesito ayuda con el ' +
+    (e?.tipo ? e.tipo + ' ' : '') +
+    (e?.marca||'') + ' ' + (e?.modelo||'') +
+    ' de la ubicacion ' + (e?.ubicacion || '') +
+    ', podrías devolverme el mensaje'
 );
     const waUrl = 'https://wa.me/573114831801?text=' + waMsg;
     main.innerHTML = `<div style="max-width:600px;margin:0 auto;padding:1.5rem;">
