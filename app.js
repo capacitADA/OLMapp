@@ -904,28 +904,37 @@ async function exportarInformeJMC(eid) {
     const LOGO_ARA = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/logo_ara.png';
     const LOGO_JM  = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/JEronimo_LOGO.png';
 
-    // Convertir logos a base64 para que sobrevivan al print desde blob URL
     async function imgToBase64(url) {
         try {
             const r = await fetch(url);
-            const blob = await r.blob();
-            return new Promise(res => {
-                const rd = new FileReader();
-                rd.onload = () => res(rd.result);
-                rd.readAsDataURL(blob);
-            });
-        } catch(err) { return url; }
+            const bl = await r.blob();
+            return new Promise(res => { const rd = new FileReader(); rd.onload = () => res(rd.result); rd.readAsDataURL(bl); });
+        } catch { return url; }
     }
     const [logo_ara_b64, logo_jm_b64] = await Promise.all([imgToBase64(LOGO_ARA), imgToBase64(LOGO_JM)]);
 
-    const G = `background:#ddd;font-weight:700;font-size:8px;`;
-    const B = `border:1px solid #555;padding:2px 4px;vertical-align:middle;`;
+    // estilos inline reutilizables
+    const S = {
+        hdrDark:  'background:#555555;color:white;font-weight:700;text-align:center;font-size:8pt;padding:3px 4px;border:1px solid #333;',
+        hdrLight: 'background:#bbbbbb;color:#111;font-weight:700;text-align:center;font-size:8pt;padding:3px 4px;border:1px solid #333;',
+        glbl:     'background:#dddddd;font-size:7pt;font-weight:700;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
+        cell:     'font-size:8pt;font-weight:700;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
+        opt:      'font-size:8pt;text-align:center;padding:3px 4px;border:1px solid #333;white-space:nowrap;',
+        lineR:    'height:13px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #aaa;padding:1px 4px;font-size:8pt;',
+        lineL:    'height:13px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #333;padding:1px 4px;font-size:8pt;',
+        evalSec:  'font-weight:700;font-style:italic;font-size:8pt;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
+        evalTxt:  'font-size:7pt;padding:2px 4px;border:1px solid #333;',
+        evalChk:  'text-align:center;font-size:13pt;font-weight:900;padding:2px 4px;border:1px solid #333;',
+        evalNo:   'padding:2px 4px;border:1px solid #333;',
+        tbl:      'width:100%;border-collapse:collapse;margin-top:-1px;',
+    };
 
-    const chkBox = (sel) => `<span style="display:inline-block;width:9px;height:9px;border:1.5px solid #333;background:${sel?'#333':'white'};vertical-align:middle;margin-right:3px;"></span>`;
+    const chkMark = (sel) => sel
+        ? `<span style="display:inline-block;width:10px;height:10px;background:#222;border:1.5px solid #222;vertical-align:middle;margin-right:3px;"></span>`
+        : `<span style="display:inline-block;width:10px;height:10px;background:white;border:1.5px solid #333;vertical-align:middle;margin-right:3px;"></span>`;
 
-    const optsAsi   = ['Reparacion','Garantia','Ajuste','Modificacion','Servicio','Mejora','Combinacion'];
-    const optsFalla = ['Mecanicas','Material','Instrumentos','Electricas','Influencia Externa'];
-    const optsCausa = ['Diseno','Fabricacion/Instalacion','Operacion/Mantenimiento','Administracion','Desconocida'];
+    const lineRow = (txt='', last=false) =>
+        `<tr><td style="${last ? S.lineL : S.lineR}">${txt}</td></tr>`;
 
     const evalGrupos = [
         { sec:'SEGURIDAD', items:[
@@ -948,210 +957,192 @@ async function exportarInformeJMC(eid) {
     evalGrupos.forEach(g => {
         g.items.forEach((item, idx) => {
             evalHTML += `<tr>
-                ${idx===0 ? `<td rowspan="${g.items.length}" style="${B}font-weight:700;font-style:italic;font-size:8px;">${g.sec}</td>` : ''}
-                <td style="${B}font-size:7.5px;">${item}</td>
-                <td style="${B}text-align:center;font-size:11px;">&#10007;</td>
-                <td style="${B}"></td>
+                ${idx===0 ? `<td rowspan="${g.items.length}" style="${S.evalSec}">${g.sec}</td>` : ''}
+                <td style="${S.evalTxt}">${item}</td>
+                <td style="${S.evalChk}">&#10007;</td>
+                <td style="${S.evalNo}"></td>
             </tr>`;
         });
     });
 
-    const lineRow = (txt='') => `<tr><td style="border-left:1px solid #555;border-right:1px solid #555;border-top:none;border-bottom:1px solid #aaa;height:12px;padding:1px 4px;font-size:8px;">${txt}</td></tr>`;
+    const optsAsi   = ['Reparacion','Garantia','Ajuste','Modificacion','Servicio','Mejora','Combinacion'];
+    const optsFalla = ['Mecanicas','Material','Instrumentos','Electricas','Influencia Externa'];
+    const optsCausa = ['Diseno','Fabricacion/Instalacion','Operacion/Mantenimiento','Administracion','Desconocida'];
+
+    const MESES_TEXTO = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+    const fechaTexto = (dd && mm && aa) ? `${parseInt(dd)} ${MESES_TEXTO[parseInt(mm)-1]} 20${aa}` : '';
 
     const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>${nombreArch}</title>
 <style>
   @page { size: A4; margin: 10mm; }
-  @media print { html,body { margin:0;padding:0; } }
-  body { font-family:Arial,sans-serif; font-size:8px; margin:0; padding:8px; color:#111; }
-  table { width:100%; border-collapse:collapse; margin-top:-1px; }
-  td,th { border:1px solid #555; padding:2px 4px; vertical-align:middle; }
-  .hdr-dark { background:#555; color:white; font-weight:700; text-align:center; font-size:8px; padding:2px; letter-spacing:0.4px; }
-  .hdr-light { background:#bbb; color:#111; font-weight:700; text-align:center; font-size:8px; padding:2px; }
-  .glbl { background:#ddd; font-size:7px; font-weight:700; }
-  .val  { font-size:8px; font-weight:700; }
-  .opt  { font-size:8px; text-align:center; white-space:nowrap; }
-  .top-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; }
-  .top-center { text-align:center; flex:1; }
-  .top-center h2 { margin:0; font-size:12px; font-weight:900; }
-  .top-center h3 { margin:0; font-size:8px; font-weight:400; }
-  .anexo { font-size:7px; font-weight:700; text-align:right; }
-  .logo-ara { height:38px; }
-  .logo-jm  { height:34px; }
-  .firma-tec { font-family:'Brush Script MT','Segoe Script','Comic Sans MS',cursive; font-size:15px; color:#1a1a6e; }
+  @media print { html,body{margin:0;padding:0;} }
+  body { font-family: Arial, sans-serif; margin: 0; padding: 6px; }
+  .firma-tec { font-family: 'Brush Script MT','Segoe Script','Comic Sans MS',cursive; font-size:16pt; color:#1a1a6e; }
 </style>
 </head><body>
 
-<div class="anexo">ANEXO 3</div>
-<div class="top-hdr">
-  <img src="${logo_ara_b64}" class="logo-ara" onerror="this.style.display='none'">
-  <div class="top-center">
-    <h2>JERONIMO MARTINS COLOMBIA</h2>
-    <h3>FORMATO UNICO DE SOPORTE — FF-JMC-DT-06</h3>
+<div style="font-size:7pt;font-weight:700;text-align:right;margin-bottom:2px;">ANEXO 3</div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+  <img src="${logo_ara_b64}" style="height:38px;" onerror="this.style.display='none'">
+  <div style="text-align:center;flex:1;">
+    <div style="font-size:13pt;font-weight:900;">JERONIMO MARTINS COLOMBIA</div>
+    <div style="font-size:8pt;">FORMATO UNICO DE SOPORTE &mdash; FF-JMC-DT-06</div>
   </div>
-  <img src="${logo_jm_b64}" class="logo-jm" onerror="this.style.display='none'">
+  <img src="${logo_jm_b64}" style="height:34px;" onerror="this.style.display='none'">
 </div>
 
 <!-- CONTRATISTA -->
-<table>
-  <tr><td colspan="4" class="hdr-dark">CONTRATISTA</td></tr>
+<table style="${S.tbl}">
+  <tr><td colspan="4" style="${S.hdrDark}">CONTRATISTA</td></tr>
   <tr>
-    <td class="glbl" style="width:16%;">Razon social</td>
-    <td style="width:34%;"><span class="val">OLM INGENIERIA SAS</span></td>
-    <td class="glbl" style="width:12%;">N&deg; NIT</td>
-    <td><span class="val">901.050.468-5</span></td>
+    <td style="${S.glbl};width:16%;">Razon social</td>
+    <td style="${S.cell};width:34%;">OLM INGENIERIA SAS</td>
+    <td style="${S.glbl};width:12%;">N&deg; NIT</td>
+    <td style="${S.cell};">901.050.468-5</td>
   </tr>
   <tr>
-    <td class="glbl">Contacto</td>
-    <td><span class="val">Oscar Leonardo Martinez</span></td>
-    <td class="glbl">Telefono</td>
-    <td><span class="val">311 4831801</span></td>
+    <td style="${S.glbl};">Contacto</td>
+    <td style="${S.cell};">Oscar Leonardo Martinez</td>
+    <td style="${S.glbl};">Telefono</td>
+    <td style="${S.cell};">311 4831801</td>
   </tr>
 </table>
 
-<!-- SOLICITANTE Y TIENDA: 8 columnas -->
-<table>
-  <tr><td colspan="8" class="hdr-dark">SOLICITANTE Y TIENDA BENEFICIARIA</td></tr>
+<!-- SOLICITANTE: 8 columnas -->
+<table style="${S.tbl}">
+  <tr><td colspan="8" style="${S.hdrDark}">SOLICITANTE Y TIENDA BENEFICIARIA</td></tr>
   <tr>
-    <td class="glbl" style="width:13%;">Nombre del solicitante</td>
-    <td colspan="4"><span class="val">${nomSol}</span></td>
-    <td class="glbl" style="width:8%;">Cargo</td>
-    <td colspan="2"><span class="val">${cargoSol}</span></td>
+    <td style="${S.glbl};width:13%;">Nombre del solicitante</td>
+    <td colspan="4" style="${S.cell};">${nomSol}</td>
+    <td style="${S.glbl};width:8%;">Cargo</td>
+    <td colspan="2" style="${S.cell};">${cargoSol}</td>
   </tr>
   <tr>
-    <td class="glbl">Nombre de la tienda</td>
-    <td style="width:17%;"><span class="val">${nomTienda}</span></td>
-    <td class="glbl" style="width:9%;">N&deg; Tienda</td>
-    <td style="width:7%;"><span class="val">${sap}</span></td>
-    <td style="background:#c0392b;color:white;font-weight:700;font-size:7px;text-align:center;width:10%;">N&deg; TICKET:</td>
-    <td style="width:12%;font-weight:900;font-size:11px;text-align:center;"><span class="val">${ticket}</span></td>
-    <td class="glbl" rowspan="2" style="text-align:center;width:6%;">Fecha</td>
-    <td rowspan="2" style="text-align:center;font-weight:700;font-size:8px;width:14%;">${fechaTexto}</td>
+    <td style="${S.glbl};">Nombre de la tienda</td>
+    <td style="${S.cell};width:17%;">${nomTienda}</td>
+    <td style="${S.glbl};width:9%;">N&deg; Tienda</td>
+    <td style="${S.cell};width:7%;">${sap}</td>
+    <td style="background:#c0392b;color:white;font-weight:700;font-size:7pt;text-align:center;padding:2px 4px;border:1px solid #333;width:10%;">N&deg; TICKET:</td>
+    <td style="${S.cell};width:12%;font-size:11pt;">${ticket}</td>
+    <td style="${S.glbl};text-align:center;width:6%;" rowspan="2">Fecha</td>
+    <td style="${S.cell};text-align:center;width:14%;" rowspan="2">${fechaTexto}</td>
   </tr>
   <tr>
-    <td class="glbl">Municipio</td>
-    <td colspan="2"><span class="val">${municipio}</span></td>
-    <td colspan="2" class="glbl">Departamento</td>
-    <td><span class="val">${depto}</span></td>
+    <td style="${S.glbl};">Municipio</td>
+    <td colspan="2" style="${S.cell};">${municipio}</td>
+    <td colspan="2" style="${S.glbl};">Departamento</td>
+    <td style="${S.cell};">${depto}</td>
   </tr>
 </table>
 
 <!-- INFO TECNICA -->
-<table>
-  <tr><td colspan="6" class="hdr-dark">INFORMACION AREA TECNICA</td></tr>
+<table style="${S.tbl}">
+  <tr><td colspan="6" style="${S.hdrDark}">INFORMACION AREA TECNICA</td></tr>
   <tr>
-    <td class="glbl" style="width:16%;">Nombre del equipo</td>
-    <td style="width:28%;"><span class="val">${nomEquipo}</span></td>
-    <td class="glbl" style="width:10%;">Marca</td>
-    <td style="width:16%;"><span class="val">${marcaEq}</span></td>
-    <td class="glbl" style="width:10%;">Serial</td>
-    <td><span class="val">${serialEq}</span></td>
+    <td style="${S.glbl};width:16%;">Nombre del equipo</td>
+    <td style="${S.cell};width:28%;">${nomEquipo}</td>
+    <td style="${S.glbl};width:10%;">Marca</td>
+    <td style="${S.cell};width:16%;">${marcaEq}</td>
+    <td style="${S.glbl};width:10%;">Serial</td>
+    <td style="${S.cell};">${serialEq}</td>
   </tr>
 </table>
 
 <!-- TIPO ASISTENCIA -->
-<table>
-  <tr><td colspan="7" class="hdr-light">TIPO DE ASISTENCIA</td></tr>
-  <tr>${optsAsi.map(t=>`<td class="opt">${chkBox(tipoAsi===t)}${t}</td>`).join('')}</tr>
+<table style="${S.tbl}">
+  <tr><td colspan="7" style="${S.hdrLight}">TIPO DE ASISTENCIA</td></tr>
+  <tr>${optsAsi.map(t=>`<td style="${S.opt}">${chkMark(tipoAsi===t)}${t}</td>`).join('')}</tr>
 </table>
 
 <!-- TIPO FALLA -->
-<table>
-  <tr><td colspan="5" class="hdr-light">TIPO DE FALLA</td></tr>
-  <tr>${optsFalla.map(t=>`<td class="opt">${chkBox(tipoFalla===t)}${t}</td>`).join('')}</tr>
+<table style="${S.tbl}">
+  <tr><td colspan="5" style="${S.hdrLight}">TIPO DE FALLA</td></tr>
+  <tr>${optsFalla.map(t=>`<td style="${S.opt}">${chkMark(tipoFalla===t)}${t}</td>`).join('')}</tr>
 </table>
 
 <!-- CAUSA -->
-<table>
-  <tr><td colspan="5" class="hdr-light">CAUSA DE FALLAS BASICAS</td></tr>
-  <tr>${optsCausa.map(t=>`<td class="opt">${chkBox(causa===t)}${t}</td>`).join('')}</tr>
+<table style="${S.tbl}">
+  <tr><td colspan="5" style="${S.hdrLight}">CAUSA DE FALLAS BASICAS</td></tr>
+  <tr>${optsCausa.map(t=>`<td style="${S.opt}">${chkMark(causa===t)}${t}</td>`).join('')}</tr>
 </table>
 
-<!-- CAMPOS LIBRES CON LINEAS -->
-<table>
-  <tr><td class="glbl" style="border-bottom:none;padding:2px 4px;">Descripcion de la falla funcionario tienda:</td></tr>
-  ${lineRow(descFalla)}${lineRow()}${lineRow()}
-  <tr><td class="glbl" style="border-top:1px solid #555;border-bottom:none;padding:2px 4px;">Diagnostico del tecnico:</td></tr>
-  ${lineRow(diag)}${lineRow()}${lineRow()}${lineRow()}${lineRow()}${lineRow()}${lineRow()}
-  <tr><td class="glbl" style="border-top:1px solid #555;border-bottom:none;padding:2px 4px;">Repuestos cambiados:</td></tr>
-  ${lineRow(repuestos||'NA')}${lineRow()}${lineRow()}
-  <tr><td class="glbl" style="border-top:1px solid #555;border-bottom:none;padding:2px 4px;">Observaciones:</td></tr>
-  ${lineRow(obs)}${lineRow()}${lineRow()}${lineRow()}
+<!-- CAMPOS LIBRES -->
+<table style="${S.tbl}">
+  <tr><td style="${S.glbl};border-bottom:none;padding:2px 4px;">Descripcion de la falla funcionario tienda:</td></tr>
+  ${lineRow(descFalla)}${lineRow()}${lineRow('', true)}
+  <tr><td style="${S.glbl};border-top:1px solid #333;border-bottom:none;padding:2px 4px;">Diagnostico del tecnico:</td></tr>
+  ${lineRow(diag)}${lineRow()}${lineRow()}${lineRow()}${lineRow()}${lineRow()}${lineRow('', true)}
+  <tr><td style="${S.glbl};border-top:1px solid #333;border-bottom:none;padding:2px 4px;">Repuestos cambiados:</td></tr>
+  ${lineRow(repuestos||'NA')}${lineRow()}${lineRow('', true)}
+  <tr><td style="${S.glbl};border-top:1px solid #333;border-bottom:none;padding:2px 4px;">Observaciones:</td></tr>
+  ${lineRow(obs)}${lineRow()}${lineRow()}${lineRow('', true)}
 </table>
 
 <!-- EVALUACION -->
-<table>
-  <tr><td colspan="4" class="hdr-dark">EVALUACION DEL SERVICIO</td></tr>
+<table style="${S.tbl}">
+  <tr><td colspan="4" style="${S.hdrDark}">EVALUACION DEL SERVICIO</td></tr>
   <tr>
-    <th class="glbl" style="width:16%;text-align:center;">PARAMETROS DE EVALUACION</th>
-    <th class="glbl"></th>
-    <th class="glbl" style="width:9%;text-align:center;">CUMPLE</th>
-    <th class="glbl" style="width:9%;text-align:center;">NO CUMPLE</th>
+    <th style="${S.glbl};width:16%;text-align:center;">PARAMETROS DE EVALUACION</th>
+    <th style="${S.glbl};"></th>
+    <th style="${S.glbl};width:9%;text-align:center;">CUMPLE</th>
+    <th style="${S.glbl};width:9%;text-align:center;">NO CUMPLE</th>
   </tr>
   ${evalHTML}
 </table>
 
 <!-- CONSTANCIA -->
-<table>
-  <tr><td colspan="6" class="hdr-dark">CONSTANCIA REALIZACION ASISTENCIA</td></tr>
+<table style="${S.tbl}">
+  <tr><td colspan="6" style="${S.hdrDark}">CONSTANCIA REALIZACION ASISTENCIA</td></tr>
   <tr>
-    <td class="glbl" style="width:18%;text-align:center;">Contratistas</td>
-    <td class="glbl" style="width:12%;text-align:center;">Cedula</td>
-    <td class="glbl" style="width:13%;text-align:center;">Hora de entrada</td>
-    <td class="glbl" style="width:13%;text-align:center;">Hora de salida</td>
-    <td class="glbl" style="width:8%;text-align:center;">Datos</td>
-    <td class="glbl" style="text-align:center;">Funcionario de la tienda</td>
+    <td style="${S.glbl};width:18%;text-align:center;">Contratistas</td>
+    <td style="${S.glbl};width:12%;text-align:center;">Cedula</td>
+    <td style="${S.glbl};width:13%;text-align:center;">Hora de entrada</td>
+    <td style="${S.glbl};width:13%;text-align:center;">Hora de salida</td>
+    <td style="${S.glbl};width:8%;text-align:center;">Datos</td>
+    <td style="${S.glbl};text-align:center;">Funcionario de la tienda</td>
   </tr>
   <tr>
-    <td style="font-size:8px;">${sesionActual?.nombre||''}</td>
-    <td style="font-size:8px;text-align:center;">${sesionActual?.cedula||''}</td>
-    <td style="font-size:8px;text-align:center;">${hEntrada}</td>
-    <td style="font-size:8px;text-align:center;">${hSalida}</td>
-    <td class="glbl">Nombre:</td>
-    <td style="font-size:8px;">${funcNombre}</td>
+    <td style="${S.cell};">${sesionActual?.nombre||''}</td>
+    <td style="${S.cell};text-align:center;">${sesionActual?.cedula||''}</td>
+    <td style="${S.cell};text-align:center;">${hEntrada}</td>
+    <td style="${S.cell};text-align:center;">${hSalida}</td>
+    <td style="${S.glbl};">Nombre:</td>
+    <td style="${S.cell};">${funcNombre}</td>
   </tr>
   <tr>
-    <td></td><td></td><td></td><td></td>
-    <td class="glbl">Cedula:</td>
-    <td style="font-size:8px;">${funcCedula}</td>
+    <td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td>
+    <td style="${S.glbl};">Cedula:</td><td style="${S.cell};">${funcCedula}</td>
   </tr>
   <tr>
-    <td></td><td></td><td></td><td></td>
-    <td class="glbl">Cargo:</td>
-    <td style="font-size:8px;">${funcCargo}</td>
+    <td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td>
+    <td style="${S.glbl};">Cargo:</td><td style="${S.cell};">${funcCargo}</td>
   </tr>
   <tr>
-    <td></td><td></td><td></td><td></td>
-    <td class="glbl">SAP:</td>
-    <td style="font-size:8px;">${funcSAP}</td>
+    <td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td>
+    <td style="${S.glbl};">SAP:</td><td style="${S.cell};">${funcSAP}</td>
   </tr>
   <tr>
-    <td class="glbl">Firma Tecnico Encargado:</td>
-    <td colspan="3" style="padding:3px 6px;">
-      <span class="firma-tec">${sesionActual?.nombre||''}</span>
-    </td>
-    <td class="glbl" rowspan="2" style="text-align:center;vertical-align:middle;">Firma:</td>
-    <td rowspan="2" style="vertical-align:middle;text-align:center;">
+    <td style="${S.glbl};">Firma Tecnico Encargado:</td>
+    <td colspan="3" style="${S.cell};padding:4px 6px;"><span class="firma-tec">${sesionActual?.nombre||''}</span></td>
+    <td style="${S.glbl};text-align:center;vertical-align:middle;" rowspan="2">Firma:</td>
+    <td style="${S.cell};vertical-align:middle;text-align:center;min-height:44px;" rowspan="2">
       ${firmaDataUrl ? `<img src="${firmaDataUrl}" style="max-height:44px;">` : ''}
     </td>
   </tr>
   <tr>
-    <td class="glbl">Cargo:</td>
-    <td colspan="3" style="font-size:8px;">${sesionActual?.cargo||''}</td>
+    <td style="${S.glbl};">Cargo:</td>
+    <td colspan="3" style="${S.cell};">${sesionActual?.cargo||''}</td>
   </tr>
 </table>
 
-<div style="font-size:7px;color:#888;text-align:right;margin-top:3px;">
-  Documento generado por capacitADA - ${new Date().toLocaleString()}
+<div style="font-size:7pt;color:#888;text-align:right;margin-top:3px;">
+  Documento generado por capacitADA &mdash; ${new Date().toLocaleString()}
 </div>
 </body></html>`;
 
     const guardado = await driveUploadPDF(html, nombreArch + '.pdf');
-    if (guardado) {
-        toast('✅ Informe guardado en Drive como PDF');
-    } else {
-        toast('⚠️ No se pudo guardar en Drive');
-    }
+    if (guardado) { toast('✅ Informe guardado en Drive como PDF'); } else { toast('⚠️ No se pudo guardar en Drive'); }
 
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
@@ -1361,7 +1352,7 @@ function generarInformePDF(eid) {
     const e = getEq(eid);
     const c = getCl(e?.clienteId);
     const ss = getServiciosEquipo(eid).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-    const LOGO = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/logo_ara.png';
+    const LOGO = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/OLM_LOGO.png';
     const serviciosHTML = ss.map(s => {
         const fotosHTML = (s.fotos||[]).length > 0
             ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;">${(s.fotos||[]).map(f=>`<img src="${f}" style="height:60px;width:60px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">`).join('')}</div>`
@@ -1383,21 +1374,30 @@ function generarInformePDF(eid) {
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <title>Informe_${e?.marca}_${e?.modelo}</title>
 <style>
-  @page{size:A4;margin:15mm;}
-  body{font-family:Arial,sans-serif;font-size:13px;color:#111;margin:0;padding:0;}
-  h2{text-align:center;font-size:16px;font-weight:900;margin:8px 0 4px;}
-  h3{text-align:center;font-size:14px;font-weight:900;margin:12px 0 6px;border-top:2px solid #111;padding-top:6px;}
-  .meta{font-size:12px;margin:3px 0;}
-  .resumen{font-size:11px;color:#555;margin:4px 0 10px;}
+  @page{size:letter;margin:15mm;}
+  @media print{html,body{margin:0;padding:0;}}
+  body{font-family:Arial,sans-serif;font-size:11px;color:#111;margin:0;padding:0;}
 </style></head><body>
-<div style="text-align:center;margin-bottom:6px;">
-  <img src="${LOGO}" style="height:56px;" onerror="this.style.display='none'">
+<div style="display:flex;align-items:center;border-bottom:3px solid #0d4a3a;padding-bottom:8px;margin-bottom:10px;">
+  <img src="${LOGO}" style="height:56px;margin-right:16px;" onerror="this.style.display='none'">
+  <div>
+    <div style="font-size:18px;font-weight:900;color:#0d4a3a;">OLM INGENIERIA SAS</div>
+    <div style="font-size:11px;color:#555;">Plantas y Sistemas Electricos &nbsp;|&nbsp; 📞 311 483 1801</div>
+    <div style="font-size:14px;font-weight:700;margin-top:2px;">INFORME TECNICO</div>
+  </div>
 </div>
-<h2>INFORME TECNICO</h2>
-<p class="meta"><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</p>
-<p class="meta"><strong>Activo:</strong> ${e?.tipo||''} ${e?.marca||''} ${e?.modelo||''} &nbsp;|&nbsp; <strong>Serial:</strong> ${e?.serie || 'N/A'}</p>
-<h3>HISTORIAL DE SERVICIOS</h3>
-<p class="resumen"><strong>Total de servicios:</strong> ${ss.length} &nbsp;&nbsp; <strong>Generado:</strong> ${new Date().toLocaleString()}</p>
+<table style="width:100%;border-collapse:collapse;margin-bottom:10px;">
+  <tr>
+    <td style="padding:4px 8px;background:#f1f5f9;border:1px solid #ddd;width:50%;font-size:11px;"><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</td>
+    <td style="padding:4px 8px;background:#f1f5f9;border:1px solid #ddd;font-size:11px;"><strong>Generado:</strong> ${new Date().toLocaleString()}</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;" colspan="2"><strong>Activo:</strong> ${e?.tipo||''} ${e?.marca||''} ${e?.modelo||''} &nbsp;&nbsp; <strong>Serial:</strong> ${e?.serie || 'N/A'} &nbsp;&nbsp; <strong>Ubicacion:</strong> ${e?.ubicacion||''}</td>
+  </tr>
+</table>
+<div style="background:#0d4a3a;color:white;font-weight:700;font-size:12px;padding:5px 10px;border-radius:4px;margin-bottom:8px;">
+  HISTORIAL DE SERVICIOS &nbsp;&nbsp; <span style="font-weight:400;font-size:10px;">${ss.length} registro(s)</span>
+</div>
 ${serviciosHTML}
 </body></html>`;
 
@@ -1412,29 +1412,87 @@ function modalQR(eid) {
     const c = getCl(e?.clienteId);
     const url = `${window.location.origin}${window.location.pathname}#/equipo/${eid}`;
     const qrDiv = document.createElement('div');
-    qrDiv.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:260px;height:260px;';
+    qrDiv.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:280px;height:280px;';
     document.body.appendChild(qrDiv);
     const QRLib = window.QRCode;
     if (!QRLib) { toast('⚠️ QRCode.js no cargado'); return; }
-    new QRLib(qrDiv, { text: url, width: 260, height: 260, colorDark: '#0d4a3a', colorLight: '#ffffff' });
+    new QRLib(qrDiv, { text: url, width: 280, height: 280, colorDark: '#0d4a3a', colorLight: '#ffffff' });
     setTimeout(() => {
         const qrCanvas = qrDiv.querySelector('canvas');
-        const dataUrl = qrCanvas.toDataURL('image/png');
-        const LOGO = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/logo_ara.png';
-        showModal(`<div class="modal" style="max-width:360px;"><div class="modal-h"><h3>📱 Codigo QR</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b" style="text-align:center;">
-            <img src="${LOGO}" style="height:40px;margin-bottom:6px;" onerror="this.style.display='none'">
-            <div style="font-weight:700;font-size:0.95rem;">OLM INGENIERIA SAS</div>
-            <div style="font-size:0.8rem;color:#555;margin-bottom:6px;">📞 311 483 1801</div>
-            <div style="border:1px solid #e2e8f0;border-radius:10px;padding:8px;margin-bottom:8px;text-align:left;">
-                <div style="font-weight:700;">${e?.tipo ? e.tipo+' · ' : ''}${e?.marca||''} ${e?.modelo||''}</div>
-                <div style="font-size:0.8rem;color:#555;">📍 ${e?.ubicacion||''}</div>
-                <div style="font-size:0.8rem;color:#555;">👤 ${c?.nombre||''}</div>
-                ${e?.serie ? `<div style="font-size:0.78rem;color:#888;">Serie: ${e.serie}</div>` : ''}
-            </div>
-            <img src="${dataUrl}" style="width:100%;border-radius:8px;">
-            <a href="${dataUrl}" download="QR_${e?.marca}_${e?.modelo}.png" class="btn btn-blue btn-full" style="margin-top:8px;">⬇️ Descargar QR</a>
-        </div></div>`);
+        const qrDataUrl = qrCanvas.toDataURL('image/png');
         document.body.removeChild(qrDiv);
+
+        // Construir canvas compuesto: logo + info + QR dentro de rectángulo
+        const W = 400, PAD = 16;
+        const compCanvas = document.createElement('canvas');
+        const ctx = compCanvas.getContext('2d');
+        const logoImg = new Image();
+        const qrImg = new Image();
+        logoImg.crossOrigin = 'anonymous';
+        logoImg.src = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/OLM_LOGO.png';
+
+        logoImg.onload = () => {
+            qrImg.onload = () => {
+                // calcular altura total
+                const logoH = 50;
+                const infoH = 70;
+                const qrH = 280;
+                const footH = 24;
+                const totalH = PAD + logoH + 8 + infoH + 8 + qrH + 8 + footH + PAD;
+                compCanvas.width = W;
+                compCanvas.height = totalH;
+
+                // fondo blanco con borde
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, W, totalH);
+                ctx.strokeStyle = '#0d4a3a';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(2, 2, W-4, totalH-4);
+
+                // franja verde superior
+                ctx.fillStyle = '#0d4a3a';
+                ctx.fillRect(2, 2, W-4, logoH + PAD + 4);
+
+                // logo centrado
+                const logoW = logoImg.width * (logoH / logoImg.height);
+                ctx.drawImage(logoImg, (W - logoW)/2, PAD, logoW, logoH);
+
+                // bloque info equipo
+                let y = PAD + logoH + 8 + 4;
+                ctx.fillStyle = '#111';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                const eqLabel = (e?.tipo ? e.tipo + ' · ' : '') + (e?.marca||'') + ' ' + (e?.modelo||'');
+                ctx.fillText(eqLabel, W/2, y + 16);
+                ctx.font = '12px Arial';
+                ctx.fillStyle = '#444';
+                ctx.fillText('📍 ' + (e?.ubicacion||''), W/2, y + 34);
+                ctx.fillText('👤 ' + (c?.nombre||''), W/2, y + 50);
+                if (e?.serie) { ctx.font = '10px Arial'; ctx.fillStyle='#888'; ctx.fillText('Serie: '+e.serie, W/2, y+64); }
+
+                // QR centrado
+                y = PAD + logoH + 8 + 4 + infoH + 8;
+                ctx.drawImage(qrImg, (W-280)/2, y, 280, 280);
+
+                // pie
+                y += 280 + 8;
+                ctx.font = '10px Arial';
+                ctx.fillStyle = '#888';
+                ctx.fillText('Escanea para ver historial y contactar soporte', W/2, y + 14);
+
+                const compositeUrl = compCanvas.toDataURL('image/png');
+
+                showModal(`<div class="modal" style="max-width:360px;"><div class="modal-h"><h3>📱 Codigo QR</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b" style="text-align:center;">
+                    <img src="${compositeUrl}" style="width:100%;border-radius:8px;border:2px solid #0d4a3a;">
+                    <a href="${compositeUrl}" download="QR_${e?.marca}_${e?.modelo}.png" class="btn btn-blue btn-full" style="margin-top:8px;">⬇️ Descargar QR</a>
+                </div></div>`);
+            };
+            qrImg.src = qrDataUrl;
+        };
+        logoImg.onerror = () => {
+            // sin logo, solo mostrar QR
+            showModal(`<div class="modal" style="max-width:340px;"><div class="modal-h"><h3>📱 Codigo QR</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b" style="text-align:center;"><img src="${qrDataUrl}" style="width:100%;"><a href="${qrDataUrl}" download="QR_${e?.marca}_${e?.modelo}.png" class="btn btn-blue btn-full" style="margin-top:8px;">⬇️ Descargar QR</a></div></div>`);
+        };
     }, 200);
 }
 
@@ -1452,7 +1510,33 @@ function manejarRutaQR() {
     if (topbar) topbar.style.display = 'none';
     if (botnav) botnav.style.display = 'none';
     main.style.background = 'white';
-    main.innerHTML = `<div style="max-width:600px;margin:0 auto;padding:1.5rem;"><div style="text-align:center;"><h2 style="color:#0d4a3a;">OLM INGENIERIA SAS</h2><p>📞 311 483 1801</p></div><div style="background:#0d4a3a;border-radius:14px;padding:14px;color:white;text-align:center;"><div>¿Necesitas soporte?</div><div style="font-size:2rem;font-weight:700;">311 483 1801</div></div><div style="border:1px solid #ccc;border-radius:12px;padding:1rem;margin:1rem 0;"><h3>${e.marca} ${e.modelo}</h3><p>📍 ${e.ubicacion}</p><p>👤 ${c?.nombre}</p><p>Serie: ${e.serie || 'N/A'}</p></div><button style="width:100%;background:#25D366;color:white;border:none;padding:14px;border-radius:12px;" onclick="window.open('https://wa.me/573114831801?text='+encodeURIComponent('Hola Oscar, necesito ayuda con el '+(e?.tipo||'')+' '+(e?.marca||'')+' '+(e?.modelo||'')+', podrías devolverme el mensaje'),'_blank')">📱 Contactar por WhatsApp</button><h3>Historial (${ss.length})</h3>${ss.map(s => `<div style="border:1px solid #d1ede0;border-radius:10px;padding:0.85rem;margin-bottom:0.65rem;"><div><strong>${s.tipo}</strong> - ${fmtFecha(s.fecha)}</div><div>🔧 ${s.tecnico}</div><div>${s.descripcion}</div>${s.proximoMantenimiento ? `<div>📅 Proximo: ${fmtFecha(s.proximoMantenimiento)}</div>` : ''}</div>`).join('')}</div>`;
+    const waMsg = encodeURIComponent('Hola Oscar, necesito ayuda con el ' + (e?.tipo||'') + ' ' + (e?.marca||'') + ' ' + (e?.modelo||'') + ', podrías devolverme el mensaje');
+    const waUrl = 'https://wa.me/573114831801?text=' + waMsg;
+    main.innerHTML = `<div style="max-width:600px;margin:0 auto;padding:1.5rem;">
+        <div style="text-align:center;margin-bottom:0.75rem;">
+            <img src="https://raw.githubusercontent.com/capacitADA/OLMapp/main/OLM_LOGO.png" style="height:48px;" onerror="this.style.display='none'">
+            <h2 style="color:#0d4a3a;margin:4px 0;">OLM INGENIERIA SAS</h2>
+            <p style="margin:0;color:#555;">📞 311 483 1801</p>
+        </div>
+        <div style="background:#0d4a3a;border-radius:14px;padding:14px;color:white;text-align:center;margin-bottom:0.75rem;">
+            <div style="font-size:0.85rem;">¿Necesitas soporte?</div>
+            <div style="font-size:2rem;font-weight:700;">311 483 1801</div>
+        </div>
+        <div style="border:1px solid #ccc;border-radius:12px;padding:1rem;margin-bottom:0.75rem;">
+            <h3 style="margin:0 0 6px;">${e?.tipo ? e.tipo+' · ':'' }${e.marca} ${e.modelo}</h3>
+            <p style="margin:2px 0;">📍 ${e.ubicacion}</p>
+            <p style="margin:2px 0;">👤 ${c?.nombre}</p>
+            <p style="margin:2px 0;font-size:0.8rem;color:#888;">Serie: ${e.serie || 'N/A'}</p>
+        </div>
+        <a id="waBtn" href="${waUrl}" target="_blank" style="display:block;width:100%;box-sizing:border-box;background:#25D366;color:white;border:none;padding:14px;border-radius:12px;text-align:center;font-size:1rem;font-weight:700;text-decoration:none;margin-bottom:1rem;">📱 Contactar por WhatsApp</a>
+        <h3>Historial (${ss.length})</h3>
+        ${ss.map(s => `<div style="border:1px solid #d1ede0;border-radius:10px;padding:0.85rem;margin-bottom:0.65rem;">
+            <div style="display:flex;justify-content:space-between;"><strong>${s.tipo}</strong><span style="font-size:0.8rem;color:#555;">${fmtFecha(s.fecha)}</span></div>
+            <div style="font-size:0.85rem;">🔧 ${s.tecnico}</div>
+            <div style="font-size:0.85rem;margin-top:2px;">${s.descripcion}</div>
+            ${s.proximoMantenimiento ? `<div style="font-size:0.82rem;color:#b45309;margin-top:4px;">📅 Proximo: ${fmtFecha(s.proximoMantenimiento)}</div>` : ''}
+        </div>`).join('')}
+    </div>`;
     return true;
 }
 
