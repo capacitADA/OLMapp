@@ -979,18 +979,18 @@ async function exportarInformeJMC(eid) {
 <html><head><meta charset="UTF-8"><title>${nombreArch}</title>
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Meddon&display=swap" rel="stylesheet">
 <style>
-  @page { size: A4; margin: 7mm; }
+  @page { size: A4; margin: 5mm; }
   @media print { html,body{margin:0;padding:0;} }
   body { font-family:Arial,sans-serif; margin:0; padding:4px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .campo { font-family:'Special Elite',serif; }
-  .firma-tec { font-family:'Meddon',cursive; font-size:14pt; color:#1a1a6e; }
+  .firma-tec { font-family:'Meddon',cursive; font-size:11pt; color:#1a1a6e; }
 </style>
 </head><body>
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
   <img src="${logo_ara_b64}" style="height:76px;" onerror="this.style.display='none'">
   <div style="text-align:center;flex:1;">
-    <div style="font-size:13pt;font-weight:900;">JERONIMO MARTINS COLOMBIA</div>
+    <div style="font-size:11pt;font-weight:900;">JERONIMO MARTINS COLOMBIA</div>
     <div style="font-size:8pt;">FORMATO UNICO DE SOPORTE</div>
     <div style="font-size:8pt;">FF-JMC-DT-06</div>
   </div>
@@ -1138,8 +1138,8 @@ async function exportarInformeJMC(eid) {
         </div>
         <div style="position:relative;width:106px;height:53px;flex-shrink:0;">
           <img src="${sello_b64}" style="position:absolute;top:0;left:0;width:106px;height:53px;object-fit:contain;filter:grayscale(100%) sepia(25%) brightness(0.75) contrast(1.1);-webkit-print-color-adjust:exact;print-color-adjust:exact;" onerror="this.style.display='none'">
-          <span style="position:absolute;top:18px;right:2px;font-family:'Special Elite',serif;font-size:7pt;font-weight:700;color:#6E5E5B;">${sap}</span>
-          <span style="position:absolute;bottom:4px;right:3px;font-family:'Meddon',cursive;font-size:10pt;color:#1a1a6e;">${dd}-${mm}-${aa}</span>
+          <span style="position:absolute;top:16px;right:2px;font-family:'Special Elite',serif;font-size:7pt;font-weight:700;color:#6E5E5B;">${sap}</span>
+          <span style="position:absolute;bottom:4px;right:3px;font-family:'Meddon',cursive;font-size:9pt;color:#1a1a6e;">${dd}-${mm}-${aa}</span>
         </div>
       </div>
     </td>
