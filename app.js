@@ -909,19 +909,20 @@ async function exportarInformeJMC(eid) {
         } catch { return url; }
     }
     const [logo_ara_b64, logo_jm_b64] = await Promise.all([imgToBase64(LOGO_ARA), imgToBase64(LOGO_JM)]);
+    // sello y meddon se cargan más abajo antes de generar el HTML
 
     // estilos inline reutilizables
     const PC = '-webkit-print-color-adjust:exact;print-color-adjust:exact;';
-    const SE = "font-family:'Special Elite',serif;";
+    const GE = "font-family:Georgia,serif;";
     const S = {
         hdrDark:  `background:#555555;color:white;font-weight:700;text-align:center;font-size:7.5pt;padding:2px 3px;border:1px solid #333;${PC}`,
         hdrLight: `background:#bbbbbb;color:#111;font-weight:700;text-align:center;font-size:7.5pt;padding:2px 3px;border:1px solid #333;${PC}`,
         glbl:     `background:#dddddd;font-size:6.5pt;font-weight:700;padding:1px 3px;border:1px solid #333;vertical-align:middle;${PC}`,
-        cell:     `font-size:7.5pt;font-weight:700;padding:1px 3px;border:1px solid #333;vertical-align:middle;`,
-        campo:    `font-size:7.5pt;padding:1px 3px;border:1px solid #333;vertical-align:middle;${SE}`,
+        cell:     'font-size:7.5pt;padding:1px 3px;border:1px solid #333;vertical-align:middle;',
+        campo:    `font-size:7.5pt;padding:1px 3px;border:1px solid #333;vertical-align:middle;${GE}`,
         opt:      'font-size:7pt;text-align:center;padding:2px 3px;border:1px solid #333;white-space:nowrap;',
-        lineR:    'height:11px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #aaa;padding:1px 3px;font-size:7pt;',
-        lineL:    'height:11px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #333;padding:1px 3px;font-size:7pt;',
+        lineR:    `height:11px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #aaa;padding:1px 3px;font-size:7pt;${GE}`,
+        lineL:    `height:11px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #333;padding:1px 3px;font-size:7pt;${GE}`,
         evalSec:  'font-weight:700;font-style:italic;font-size:7pt;padding:1px 3px;border:1px solid #333;vertical-align:middle;',
         evalTxt:  'font-size:6.5pt;padding:1px 3px;border:1px solid #333;',
         evalChk:  'text-align:center;font-size:10pt;font-weight:900;padding:1px 3px;border:1px solid #333;',
@@ -930,11 +931,15 @@ async function exportarInformeJMC(eid) {
     };
 
     const chkMark = (sel) => sel
+        ? `<span style="display:inline-block;width:9px;height:9px;background:#222;border:1.5px solid #222;vertical-align:middle;margin-right:2px;${PC}"></span>`
+        : `<span style="display:inline-block;width:9px;height:9px;background:white;border:1.5px solid #333;vertical-align:middle;margin-right:2px;"></span>`;
+
+    const chkMark = (sel) => sel
         ? `<span style="display:inline-block;width:10px;height:10px;background:#222;border:1.5px solid #222;vertical-align:middle;margin-right:3px;"></span>`
         : `<span style="display:inline-block;width:10px;height:10px;background:white;border:1.5px solid #333;vertical-align:middle;margin-right:3px;"></span>`;
 
     const lineRow = (txt='', last=false) =>
-        `<tr><td style="${last ? S.lineL : S.lineR}">${txt}</td></tr>`;
+        `<tr><td style="${last ? S.lineL : S.lineR}" class="campo">${txt}</td></tr>`;
 
     const evalGrupos = [
         { sec:'SEGURIDAD', items:[
@@ -972,25 +977,31 @@ async function exportarInformeJMC(eid) {
     const MESES_TEXTO = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
     const fechaTexto = (dd && mm && aa) ? `${parseInt(dd)} ${MESES_TEXTO[parseInt(mm)-1]} 20${aa}` : '';
 
-    const SELLO_URL = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/sello_ara.png';
-    const sello_b64 = await imgToBase64(SELLO_URL);
+    // Cargar Meddon para firma + sello
+    const MEDDON_URL = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/Meddon-Regular.ttf';
+    const SELLO_URL  = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/sello_ara.png';
+    const [meddon_b64, sello_b64] = await Promise.all([imgToBase64(MEDDON_URL), imgToBase64(SELLO_URL)]);
+
+    // Nombre archivo: Ticket_[ticket]_[tipoAsi]_[sap]_[fecha]
+    const tipoAsiNombre = getRadio('jTipoAsi') || 'servicio';
+    const nombreArch2 = `Ticket_${ticket||'sin-ticket'}_${tipoAsiNombre}_${sap||'sin-sap'}_${fechaArch}`;
 
     const html = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>${nombreArch}</title>
-<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Meddon&display=swap" rel="stylesheet">
+<html><head><meta charset="UTF-8"><title>${nombreArch2}</title>
 <style>
-  @page { size: A4; margin: 5mm; }
+  @page { size: A4; margin: 7mm; }
   @media print { html,body{margin:0;padding:0;} }
   body { font-family:Arial,sans-serif; margin:0; padding:4px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .campo { font-family:'Special Elite',serif; }
-  .firma-tec { font-family:'Meddon',cursive; font-size:11pt; color:#1a1a6e; }
+  @font-face { font-family:'Meddon'; src:url('${meddon_b64}') format('truetype'); font-weight:normal; }
+  .firma-tec { font-family:'Meddon',cursive; font-size:19px; color:#1a1a6e; }
+  .campo { font-family:Georgia,serif; }
 </style>
 </head><body>
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
   <img src="${logo_ara_b64}" style="height:76px;" onerror="this.style.display='none'">
   <div style="text-align:center;flex:1;">
-    <div style="font-size:11pt;font-weight:900;">JERONIMO MARTINS COLOMBIA</div>
+    <div style="font-size:13pt;font-weight:900;">JERONIMO MARTINS COLOMBIA</div>
     <div style="font-size:8pt;">FORMATO UNICO DE SOPORTE</div>
     <div style="font-size:8pt;">FF-JMC-DT-06</div>
   </div>
@@ -1133,15 +1144,35 @@ async function exportarInformeJMC(eid) {
     <td style="${S.glbl};text-align:center;vertical-align:middle;" rowspan="2">Firma:</td>
     <td style="${S.cell};padding:4px;vertical-align:middle;" rowspan="2">
       <div style="display:flex;align-items:flex-end;gap:8px;">
-        <div style="flex:1;min-height:44px;text-align:center;vertical-align:middle;">
+        <div style="flex:1;min-height:44px;text-align:center;">
           ${firmaDataUrl ? `<img src="${firmaDataUrl}" style="max-height:44px;">` : ''}
         </div>
-        <div style="position:relative;width:106px;height:53px;flex-shrink:0;">
-          <img src="${sello_b64}" style="position:absolute;top:0;left:0;width:106px;height:53px;object-fit:contain;filter:grayscale(100%) sepia(25%) brightness(0.75) contrast(1.1);-webkit-print-color-adjust:exact;print-color-adjust:exact;" onerror="this.style.display='none'">
-          <span style="position:absolute;top:16px;right:2px;font-family:'Special Elite',serif;font-size:7pt;font-weight:700;color:#6E5E5B;">${sap}</span>
-          <span style="position:absolute;bottom:4px;right:3px;font-family:'Meddon',cursive;font-size:9pt;color:#1a1a6e;">${dd}-${mm}-${aa}</span>
-        </div>
+        <canvas id="selloCanvas" width="106" height="53" style="flex-shrink:0;display:block;"></canvas>
       </div>
+      <script>
+      (function(){
+        const img = new Image();
+        img.onload = function(){
+          const c = document.getElementById('selloCanvas');
+          if(!c) return;
+          const ctx = c.getContext('2d');
+          ctx.filter = 'grayscale(100%) sepia(25%) brightness(0.75) contrast(1.1)';
+          ctx.drawImage(img, 0, 0, 106, 53);
+          ctx.filter = 'none';
+          // SAP 32px Arial Narrow, y=63*53/160=20.9≈21, x proporcional 316*106/320=104.7≈105
+          ctx.font = "bold 11px 'Arial Narrow', Arial, sans-serif";
+          ctx.fillStyle = '#6E5E5B';
+          ctx.textAlign = 'right';
+          ctx.fillText('${sap}', 105, 21);
+          // Fecha 28px Georgia → proporcional: 28*53/160=9.3≈9px, y=126*53/160=41.7≈42, x=128*106/320=42.4≈42
+          ctx.font = "9px Georgia, serif";
+          ctx.fillStyle = '#2a2a6e';
+          ctx.textAlign = 'left';
+          ctx.fillText('${dd}-${mm}-${aa}', 42, 42);
+        };
+        img.src = '${sello_b64}';
+      })();
+      <\/script>
     </td>
   </tr>
   <tr>
@@ -1414,15 +1445,8 @@ function generarInformePDF(eid) {
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">${serviciosHTML}</div>
 </body></html>`;
 
-    const blob = new Blob([html], {type:'text/html'});
-    const url = URL.createObjectURL(blob);
     const v = window.open('', '_blank');
-    if (v) {
-        v.document.open();
-        v.document.write(html);
-        v.document.close();
-        v.onload = () => v.print();
-    }
+    if (v) { v.document.open(); v.document.write(html); v.document.close(); setTimeout(()=>v.print(),500); }
 }
 
 function modalQR(eid) {
