@@ -908,28 +908,28 @@ async function exportarInformeJMC(eid) {
             return new Promise(res => { const rd = new FileReader(); rd.onload = () => res(rd.result); rd.readAsDataURL(bl); });
         } catch { return url; }
     }
-    const [logo_ara_b64, logo_jm_b64] = await Promise.all([imgToBase64(LOGO_ARA), imgToBase64(LOGO_JM)]);
+    const SELLO_ARA = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/sello_ara.png';
+    const [logo_ara_b64, logo_jm_b64, sello_b64] = await Promise.all([imgToBase64(LOGO_ARA), imgToBase64(LOGO_JM), imgToBase64(SELLO_ARA)]);
 
-    // estilos inline reutilizables — print-color-adjust:exact para forzar fondos al imprimir
-    const PC = '-webkit-print-color-adjust:exact;print-color-adjust:exact;';
+    // estilos inline reutilizables
     const S = {
-        hdrDark:  `background:#555555;color:white;font-weight:700;text-align:center;font-size:7.5pt;padding:2px 3px;border:1px solid #333;${PC}`,
-        hdrLight: `background:#bbbbbb;color:#111;font-weight:700;text-align:center;font-size:7.5pt;padding:2px 3px;border:1px solid #333;${PC}`,
-        glbl:     `background:#dddddd;font-size:6.5pt;font-weight:700;padding:1px 3px;border:1px solid #333;vertical-align:middle;${PC}`,
-        cell:     'font-size:7.5pt;font-weight:700;padding:1px 3px;border:1px solid #333;vertical-align:middle;',
-        opt:      'font-size:7pt;text-align:center;padding:2px 3px;border:1px solid #333;white-space:nowrap;',
-        lineR:    'height:11px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #aaa;padding:1px 3px;font-size:7pt;',
-        lineL:    'height:11px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #333;padding:1px 3px;font-size:7pt;',
-        evalSec:  'font-weight:700;font-style:italic;font-size:7pt;padding:1px 3px;border:1px solid #333;vertical-align:middle;',
-        evalTxt:  'font-size:6.5pt;padding:1px 3px;border:1px solid #333;',
-        evalChk:  'text-align:center;font-size:10pt;font-weight:900;padding:1px 3px;border:1px solid #333;',
-        evalNo:   'padding:1px 3px;border:1px solid #333;',
+        hdrDark:  'background:#555555;color:white;font-weight:700;text-align:center;font-size:8pt;padding:3px 4px;border:1px solid #333;',
+        hdrLight: 'background:#bbbbbb;color:#111;font-weight:700;text-align:center;font-size:8pt;padding:3px 4px;border:1px solid #333;',
+        glbl:     'background:#dddddd;font-size:7pt;font-weight:700;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
+        cell:     'font-size:8pt;font-weight:700;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
+        opt:      'font-size:8pt;text-align:center;padding:3px 4px;border:1px solid #333;white-space:nowrap;',
+        lineR:    'height:13px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #aaa;padding:1px 4px;font-size:8pt;',
+        lineL:    'height:13px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #333;padding:1px 4px;font-size:8pt;',
+        evalSec:  'font-weight:700;font-style:italic;font-size:8pt;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
+        evalTxt:  'font-size:7pt;padding:2px 4px;border:1px solid #333;',
+        evalChk:  'text-align:center;font-size:13pt;font-weight:900;padding:2px 4px;border:1px solid #333;',
+        evalNo:   'padding:2px 4px;border:1px solid #333;',
         tbl:      'width:100%;border-collapse:collapse;margin-top:-1px;',
     };
 
     const chkMark = (sel) => sel
-        ? `<span style="display:inline-block;width:9px;height:9px;background:#222;border:1.5px solid #222;vertical-align:middle;margin-right:2px;${PC}"></span>`
-        : `<span style="display:inline-block;width:9px;height:9px;background:white;border:1.5px solid #333;vertical-align:middle;margin-right:2px;"></span>`;
+        ? `<span style="display:inline-block;width:10px;height:10px;background:#222;border:1.5px solid #222;vertical-align:middle;margin-right:3px;"></span>`
+        : `<span style="display:inline-block;width:10px;height:10px;background:white;border:1.5px solid #333;vertical-align:middle;margin-right:3px;"></span>`;
 
     const lineRow = (txt='', last=false) =>
         `<tr><td style="${last ? S.lineL : S.lineR}">${txt}</td></tr>`;
@@ -975,19 +975,30 @@ async function exportarInformeJMC(eid) {
 <style>
   @page { size: A4; margin: 7mm; }
   @media print { html,body{margin:0;padding:0;} }
+  @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Playwrite+IE&family=Alex+Brush&family=Great+Vibes&family=Meddon&display=swap');
   body { font-family: Arial, sans-serif; margin: 0; padding: 4px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .firma-tec { font-family: 'Brush Script MT','Segoe Script','Comic Sans MS',cursive; font-size:16pt; color:#1a1a6e; }
+  .campo { font-family: 'Special Elite', serif; }
+  .firma-tec { font-size:16pt; color:#1a1a6e; }
 </style>
+<script>
+  (function(){
+    const fonts = ["'Playwrite IE',cursive","'Alex Brush',cursive","'Great Vibes',cursive","'Meddon',cursive"];
+    const pick = fonts[Math.floor(Math.random()*fonts.length)];
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.firma-tec').forEach(el => el.style.fontFamily = pick);
+    });
+  })();
+<\/script>
 </head><body>
 
-<div style="font-size:7pt;font-weight:700;text-align:right;margin-bottom:2px;">ANEXO 3</div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-  <img src="${logo_ara_b64}" style="height:38px;" onerror="this.style.display='none'">
+  <img src="${logo_ara_b64}" style="height:76px;" onerror="this.style.display='none'">
   <div style="text-align:center;flex:1;">
     <div style="font-size:13pt;font-weight:900;">JERONIMO MARTINS COLOMBIA</div>
-    <div style="font-size:8pt;">FORMATO UNICO DE SOPORTE &mdash; FF-JMC-DT-06</div>
+    <div style="font-size:8pt;">FORMATO UNICO DE SOPORTE</div>
+    <div style="font-size:8pt;">FF-JMC-DT-06</div>
   </div>
-  <img src="${logo_jm_b64}" style="height:34px;" onerror="this.style.display='none'">
+  <img src="${logo_jm_b64}" style="height:68px;" onerror="this.style.display='none'">
 </div>
 
 <!-- CONTRATISTA -->
@@ -1070,11 +1081,11 @@ async function exportarInformeJMC(eid) {
   <tr><td style="${S.glbl};border-bottom:none;padding:2px 4px;">Descripcion de la falla funcionario tienda:</td></tr>
   ${lineRow(descFalla)}${lineRow()}${lineRow('', true)}
   <tr><td style="${S.glbl};border-top:1px solid #333;border-bottom:none;padding:2px 4px;">Diagnostico del tecnico:</td></tr>
-  ${lineRow(diag)}${lineRow()}${lineRow()}${lineRow()}${lineRow('', true)}
+  ${lineRow(diag)}${lineRow()}${lineRow()}${lineRow()}${lineRow()}${lineRow()}${lineRow('', true)}
   <tr><td style="${S.glbl};border-top:1px solid #333;border-bottom:none;padding:2px 4px;">Repuestos cambiados:</td></tr>
   ${lineRow(repuestos||'NA')}${lineRow()}${lineRow('', true)}
   <tr><td style="${S.glbl};border-top:1px solid #333;border-bottom:none;padding:2px 4px;">Observaciones:</td></tr>
-  ${lineRow(obs)}${lineRow()}${lineRow('', true)}
+  ${lineRow(obs)}${lineRow()}${lineRow()}${lineRow('', true)}
 </table>
 
 <!-- EVALUACION -->
@@ -1101,36 +1112,45 @@ async function exportarInformeJMC(eid) {
     <td style="${S.glbl};text-align:center;">Funcionario de la tienda</td>
   </tr>
   <tr>
-    <td style="${S.cell};">${sesionActual?.nombre||''}</td>
-    <td style="${S.cell};text-align:center;">${sesionActual?.cedula||''}</td>
-    <td style="${S.cell};text-align:center;">${hEntrada}</td>
-    <td style="${S.cell};text-align:center;">${hSalida}</td>
+    <td style="${S.cell};" class="campo">${sesionActual?.nombre||''}</td>
+    <td style="${S.cell};text-align:center;" class="campo">${sesionActual?.cedula||''}</td>
+    <td style="${S.cell};text-align:center;" class="campo">${hEntrada}</td>
+    <td style="${S.cell};text-align:center;" class="campo">${hSalida}</td>
     <td style="${S.glbl};">Nombre:</td>
-    <td style="${S.cell};">${funcNombre}</td>
+    <td style="${S.cell};" class="campo">${funcNombre}</td>
   </tr>
   <tr>
     <td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td>
-    <td style="${S.glbl};">Cedula:</td><td style="${S.cell};">${funcCedula}</td>
+    <td style="${S.glbl};">Cedula:</td><td style="${S.cell};" class="campo">${funcCedula}</td>
   </tr>
   <tr>
     <td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td>
-    <td style="${S.glbl};">Cargo:</td><td style="${S.cell};">${funcCargo}</td>
+    <td style="${S.glbl};">Cargo:</td><td style="${S.cell};" class="campo">${funcCargo}</td>
   </tr>
   <tr>
     <td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td>
-    <td style="${S.glbl};">SAP:</td><td style="${S.cell};">${funcSAP}</td>
+    <td style="${S.glbl};">SAP:</td><td style="${S.cell};" class="campo">${funcSAP}</td>
   </tr>
   <tr>
     <td style="${S.glbl};">Firma Tecnico Encargado:</td>
     <td colspan="3" style="${S.cell};padding:4px 6px;"><span class="firma-tec">${sesionActual?.nombre||''}</span></td>
     <td style="${S.glbl};text-align:center;vertical-align:middle;" rowspan="2">Firma:</td>
-    <td style="${S.cell};vertical-align:middle;text-align:center;min-height:44px;" rowspan="2">
-      ${firmaDataUrl ? `<img src="${firmaDataUrl}" style="max-height:44px;">` : ''}
+    <td style="${S.cell};padding:4px;vertical-align:middle;" rowspan="2">
+      <div style="display:flex;align-items:flex-end;gap:8px;">
+        <div style="flex:1;min-height:44px;vertical-align:middle;text-align:center;">
+          ${firmaDataUrl ? `<img src="${firmaDataUrl}" style="max-height:44px;">` : ''}
+        </div>
+        <div style="position:relative;width:106px;height:53px;flex-shrink:0;">
+          <img src="${sello_b64}" style="position:absolute;top:0;left:0;width:106px;height:53px;object-fit:contain;filter:grayscale(100%) sepia(25%) brightness(0.75) contrast(1.1);-webkit-print-color-adjust:exact;print-color-adjust:exact;" onerror="this.style.display='none'">
+          <span style="position:absolute;top:4px;right:6px;font-family:'Special Elite',serif;font-size:8pt;font-weight:700;color:#6E5E5B;">${sap}</span>
+          <span class="firma-tec" style="position:absolute;bottom:4px;right:5px;font-size:11pt;color:#1a1a6e;">${dd}-${mm}-${aa}</span>
+        </div>
+      </div>
     </td>
   </tr>
   <tr>
     <td style="${S.glbl};">Cargo:</td>
-    <td colspan="3" style="${S.cell};">${sesionActual?.cargo||''}</td>
+    <td colspan="3" style="${S.cell};" class="campo">${sesionActual?.cargo||''}</td>
   </tr>
 </table>
 
@@ -1356,15 +1376,15 @@ function generarInformePDF(eid) {
             ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;">${(s.fotos||[]).map(f=>`<img src="${f}" style="height:80px;width:80px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">`).join('')}</div>`
             : '';
         const proxHTML = (s.tipo === 'Mantenimiento' && s.proximoMantenimiento)
-            ? `<div style="color:#b45309;font-size:16px;margin-top:6px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">&#128197; Proximo mantenimiento: ${fmtFecha(s.proximoMantenimiento)}</div>`
+            ? `<div style="color:#b45309;font-size:16px;margin-top:4px;">&#128197; Proximo mantenimiento: ${fmtFecha(s.proximoMantenimiento)}</div>`
             : '';
-        return `<div style="border:1px solid #d1d5db;border-radius:8px;padding:14px;margin-bottom:12px;page-break-inside:avoid;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span style="background:${s.tipo==='Mantenimiento'?'#1d4ed8':s.tipo==='Reparacion'?'#dc2626':'#15803d'};color:white;padding:3px 14px;border-radius:12px;font-size:15px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact;">${s.tipo}</span>
-                <span style="font-size:15px;color:#555;">${fmtFecha(s.fecha)}</span>
+        return `<div style="border:1px solid #d1d5db;border-radius:8px;padding:12px;margin-bottom:10px;page-break-inside:avoid;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <span style="background:${s.tipo==='Mantenimiento'?'#1d4ed8':s.tipo==='Reparacion'?'#dc2626':'#15803d'};color:white;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;">${s.tipo}</span>
+                <span style="font-size:16px;color:#555;">${fmtFecha(s.fecha)}</span>
             </div>
-            <div style="font-size:16px;color:#374151;margin:4px 0;">&#128295; ${s.tecnico}</div>
-            <div style="font-size:16px;color:#111;margin:4px 0;">${s.descripcion}</div>
+            <div style="font-size:16px;color:#374151;margin:3px 0;">&#128295; ${s.tecnico}</div>
+            <div style="font-size:16px;color:#111;margin:3px 0;">${s.descripcion}</div>
             ${fotosHTML}${proxHTML}
         </div>`;
     }).join('');
@@ -1379,7 +1399,6 @@ function generarInformePDF(eid) {
 <div style="display:flex;align-items:center;border-bottom:3px solid #0d4a3a;padding-bottom:10px;margin-bottom:12px;">
   <img src="${LOGO}" style="height:64px;margin-right:18px;" onerror="this.style.display='none'">
   <div>
-    <div style="font-size:22px;font-weight:900;color:#0d4a3a;">OLM INGENIERIA SAS</div>
     <div style="font-size:14px;color:#555;">Plantas y Sistemas Electricos &nbsp;|&nbsp; 📞 311 483 1801</div>
     <div style="font-size:18px;font-weight:700;margin-top:4px;">INFORME TECNICO</div>
   </div>
@@ -1393,10 +1412,10 @@ function generarInformePDF(eid) {
     <td style="padding:6px 10px;border:1px solid #ddd;font-size:14px;" colspan="2"><strong>Activo:</strong> ${e?.tipo||''} ${e?.marca||''} ${e?.modelo||''} &nbsp;&nbsp; <strong>Serial:</strong> ${e?.serie || 'N/A'} &nbsp;&nbsp; <strong>Ubicacion:</strong> ${e?.ubicacion||''}</td>
   </tr>
 </table>
-<div style="background:#0d4a3a;color:white;font-weight:700;font-size:15px;padding:7px 12px;border-radius:4px;margin-bottom:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-  HISTORIAL DE SERVICIOS &nbsp;&nbsp; <span style="font-weight:400;font-size:13px;">${ss.length} registro(s)</span>
+<div style="background:#0d4a3a;color:white;font-weight:700;font-size:12px;padding:5px 10px;border-radius:4px;margin-bottom:8px;">
+  HISTORIAL DE SERVICIOS &nbsp;&nbsp; <span style="font-weight:400;font-size:10px;">${ss.length} registro(s)</span>
 </div>
-${serviciosHTML}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">${serviciosHTML}</div>
 </body></html>`;
 
     const blob = new Blob([html], {type:'text/html'});
@@ -1509,18 +1528,15 @@ function manejarRutaQR() {
     if (botnav) botnav.style.display = 'none';
     main.style.background = 'white';
     const waMsg = encodeURIComponent(
-    'Hola Oscar, necesito ayuda con el ' +
-    (e?.tipo ? e.tipo + ' ' : '') +
-    (e?.marca||'') + ' ' + (e?.modelo||'') +
-    ' de la ubicacion ' + (e?.ubicacion || '') +
-    ', podrías devolverme el mensaje'
+    `Hola Oscar,\n\nNecesito ayuda con el equipo:\n` +
+    `${e?.tipo ? e.tipo + ' ' : ''}${e?.marca} ${e?.modelo}\n` +
+    `Ubicación: ${e?.ubicacion || 'N/A'}\n\n` +
+    `Podrías contactarme? Gracias.`
 );
     const waUrl = 'https://wa.me/573114831801?text=' + waMsg;
     main.innerHTML = `<div style="max-width:600px;margin:0 auto;padding:1.5rem;">
         <div style="text-align:center;margin-bottom:0.75rem;">
-            <img src="https://raw.githubusercontent.com/capacitADA/OLMapp/main/OLM_LOGO.png" style="height:48px;" onerror="this.style.display='none'">
-            <h2 style="color:#0d4a3a;margin:4px 0;">OLM INGENIERIA SAS</h2>
-            <p style="margin:0;color:#555;">📞 311 483 1801</p>
+            <img src="https://raw.githubusercontent.com/capacitADA/OLMapp/main/OLM_LOGO.png" style="height:56px;" onerror="this.style.display='none'">
         </div>
         <div style="background:#0d4a3a;border-radius:14px;padding:14px;color:white;text-align:center;margin-bottom:0.75rem;">
             <div style="font-size:0.85rem;">¿Necesitas soporte?</div>
