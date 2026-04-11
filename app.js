@@ -904,6 +904,20 @@ async function exportarInformeJMC(eid) {
     const LOGO_ARA = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/logo_ara.png';
     const LOGO_JM  = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/JEronimo_LOGO.png';
 
+    // Convertir logos a base64 para que sobrevivan al print desde blob URL
+    async function imgToBase64(url) {
+        try {
+            const r = await fetch(url);
+            const blob = await r.blob();
+            return new Promise(res => {
+                const rd = new FileReader();
+                rd.onload = () => res(rd.result);
+                rd.readAsDataURL(blob);
+            });
+        } catch(err) { return url; }
+    }
+    const [logo_ara_b64, logo_jm_b64] = await Promise.all([imgToBase64(LOGO_ARA), imgToBase64(LOGO_JM)]);
+
     const G = `background:#ddd;font-weight:700;font-size:8px;`;
     const B = `border:1px solid #555;padding:2px 4px;vertical-align:middle;`;
 
@@ -970,12 +984,12 @@ async function exportarInformeJMC(eid) {
 
 <div class="anexo">ANEXO 3</div>
 <div class="top-hdr">
-  <img src="${LOGO_ARA}" class="logo-ara" onerror="this.style.display='none'">
+  <img src="${logo_ara_b64}" class="logo-ara" onerror="this.style.display='none'">
   <div class="top-center">
     <h2>JERONIMO MARTINS COLOMBIA</h2>
     <h3>FORMATO UNICO DE SOPORTE — FF-JMC-DT-06</h3>
   </div>
-  <img src="${LOGO_JM}" class="logo-jm" onerror="this.style.display='none'">
+  <img src="${logo_jm_b64}" class="logo-jm" onerror="this.style.display='none'">
 </div>
 
 <!-- CONTRATISTA -->
@@ -1347,15 +1361,55 @@ function generarInformePDF(eid) {
     const e = getEq(eid);
     const c = getCl(e?.clienteId);
     const ss = getServiciosEquipo(eid).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe_${e?.marca}_${e?.modelo}</title><style>body{font-family:Arial;padding:20px;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #ccc;padding:8px;}</style></head><body><h1>OLM INGENIERIA SAS</h1><h2>Informe Tecnico</h2><p><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</p><p><strong>Activo:</strong> ${e?.marca} ${e?.modelo} - Serie: ${e?.serie || 'N/A'}</p><p><strong>Ubicacion:</strong> ${e?.ubicacion || 'N/A'}</p><h3>Historial de Servicios</h3></table><tr><th>Fecha</th><th>Tipo</th><th>Tecnico</th><th>Descripcion</th></tr>${ss.map(s => `<tr><td>${fmtFecha(s.fecha)}</td><td>${s.tipo}</td><td>${s.tecnico}</td><td>${s.descripcion}</td></tr>`).join('')}</table><p>Total de servicios: ${ss.length}</p><p>Generado: ${new Date().toLocaleString()}</p></body></html>`;
-    const v = window.open('', '_blank');
-    v.document.write(html);
-    v.document.close();
-    v.print();
+    const LOGO = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/logo_ara.png';
+    const serviciosHTML = ss.map(s => {
+        const fotosHTML = (s.fotos||[]).length > 0
+            ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;">${(s.fotos||[]).map(f=>`<img src="${f}" style="height:60px;width:60px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">`).join('')}</div>`
+            : '';
+        const proxHTML = (s.tipo === 'Mantenimiento' && s.proximoMantenimiento)
+            ? `<div style="color:#b45309;font-size:12px;margin-top:4px;">&#128197; Proximo mantenimiento: ${fmtFecha(s.proximoMantenimiento)}</div>`
+            : '';
+        return `<div style="border:1px solid #d1d5db;border-radius:8px;padding:12px;margin-bottom:10px;page-break-inside:avoid;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <span style="background:${s.tipo==='Mantenimiento'?'#1d4ed8':s.tipo==='Reparacion'?'#dc2626':'#15803d'};color:white;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;">${s.tipo}</span>
+                <span style="font-size:12px;color:#555;">${fmtFecha(s.fecha)}</span>
+            </div>
+            <div style="font-size:12px;color:#374151;margin:3px 0;">&#128295; ${s.tecnico}</div>
+            <div style="font-size:12px;color:#111;margin:3px 0;">${s.descripcion}</div>
+            ${fotosHTML}${proxHTML}
+        </div>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>Informe_${e?.marca}_${e?.modelo}</title>
+<style>
+  @page{size:A4;margin:15mm;}
+  body{font-family:Arial,sans-serif;font-size:13px;color:#111;margin:0;padding:0;}
+  h2{text-align:center;font-size:16px;font-weight:900;margin:8px 0 4px;}
+  h3{text-align:center;font-size:14px;font-weight:900;margin:12px 0 6px;border-top:2px solid #111;padding-top:6px;}
+  .meta{font-size:12px;margin:3px 0;}
+  .resumen{font-size:11px;color:#555;margin:4px 0 10px;}
+</style></head><body>
+<div style="text-align:center;margin-bottom:6px;">
+  <img src="${LOGO}" style="height:56px;" onerror="this.style.display='none'">
+</div>
+<h2>INFORME TECNICO</h2>
+<p class="meta"><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</p>
+<p class="meta"><strong>Activo:</strong> ${e?.tipo||''} ${e?.marca||''} ${e?.modelo||''} &nbsp;|&nbsp; <strong>Serial:</strong> ${e?.serie || 'N/A'}</p>
+<h3>HISTORIAL DE SERVICIOS</h3>
+<p class="resumen"><strong>Total de servicios:</strong> ${ss.length} &nbsp;&nbsp; <strong>Generado:</strong> ${new Date().toLocaleString()}</p>
+${serviciosHTML}
+</body></html>`;
+
+    const blob = new Blob([html], {type:'text/html'});
+    const url = URL.createObjectURL(blob);
+    const v = window.open(url, '_blank');
+    if (v) v.onload = () => v.print();
 }
 
 function modalQR(eid) {
     const e = getEq(eid);
+    const c = getCl(e?.clienteId);
     const url = `${window.location.origin}${window.location.pathname}#/equipo/${eid}`;
     const qrDiv = document.createElement('div');
     qrDiv.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:260px;height:260px;';
@@ -1366,7 +1420,20 @@ function modalQR(eid) {
     setTimeout(() => {
         const qrCanvas = qrDiv.querySelector('canvas');
         const dataUrl = qrCanvas.toDataURL('image/png');
-        showModal(`<div class="modal" style="max-width:340px;"><div class="modal-h"><h3>📱 QR</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b"><img src="${dataUrl}" style="width:100%;"><a href="${dataUrl}" download="QR_${e?.marca}_${e?.modelo}.png" class="btn btn-blue btn-full">⬇️ Descargar</a></div></div>`);
+        const LOGO = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/logo_ara.png';
+        showModal(`<div class="modal" style="max-width:360px;"><div class="modal-h"><h3>📱 Codigo QR</h3><button class="xbtn" onclick="closeModal()">✕</button></div><div class="modal-b" style="text-align:center;">
+            <img src="${LOGO}" style="height:40px;margin-bottom:6px;" onerror="this.style.display='none'">
+            <div style="font-weight:700;font-size:0.95rem;">OLM INGENIERIA SAS</div>
+            <div style="font-size:0.8rem;color:#555;margin-bottom:6px;">📞 311 483 1801</div>
+            <div style="border:1px solid #e2e8f0;border-radius:10px;padding:8px;margin-bottom:8px;text-align:left;">
+                <div style="font-weight:700;">${e?.tipo ? e.tipo+' · ' : ''}${e?.marca||''} ${e?.modelo||''}</div>
+                <div style="font-size:0.8rem;color:#555;">📍 ${e?.ubicacion||''}</div>
+                <div style="font-size:0.8rem;color:#555;">👤 ${c?.nombre||''}</div>
+                ${e?.serie ? `<div style="font-size:0.78rem;color:#888;">Serie: ${e.serie}</div>` : ''}
+            </div>
+            <img src="${dataUrl}" style="width:100%;border-radius:8px;">
+            <a href="${dataUrl}" download="QR_${e?.marca}_${e?.modelo}.png" class="btn btn-blue btn-full" style="margin-top:8px;">⬇️ Descargar QR</a>
+        </div></div>`);
         document.body.removeChild(qrDiv);
     }, 200);
 }
@@ -1385,7 +1452,7 @@ function manejarRutaQR() {
     if (topbar) topbar.style.display = 'none';
     if (botnav) botnav.style.display = 'none';
     main.style.background = 'white';
-    main.innerHTML = `<div style="max-width:600px;margin:0 auto;padding:1.5rem;"><div style="text-align:center;"><h2 style="color:#0d4a3a;">OLM INGENIERIA SAS</h2><p>📞 311 483 1801</p></div><div style="background:#0d4a3a;border-radius:14px;padding:14px;color:white;text-align:center;"><div>¿Necesitas soporte?</div><div style="font-size:2rem;font-weight:700;">311 483 1801</div></div><div style="border:1px solid #ccc;border-radius:12px;padding:1rem;margin:1rem 0;"><h3>${e.marca} ${e.modelo}</h3><p>📍 ${e.ubicacion}</p><p>👤 ${c?.nombre}</p><p>Serie: ${e.serie || 'N/A'}</p></div><button style="width:100%;background:#25D366;color:white;border:none;padding:14px;border-radius:12px;" onclick="window.open('https://wa.me/573114831801?text=${encodeURIComponent('Hola OLM, necesito soporte para ' + (e?.marca||'') + ' ' + (e?.modelo||''))}','_blank')">📱 Contactar por WhatsApp</button><h3>Historial (${ss.length})</h3>${ss.map(s => `<div style="border:1px solid #d1ede0;border-radius:10px;padding:0.85rem;margin-bottom:0.65rem;"><div><strong>${s.tipo}</strong> - ${fmtFecha(s.fecha)}</div><div>🔧 ${s.tecnico}</div><div>${s.descripcion}</div>${s.proximoMantenimiento ? `<div>📅 Proximo: ${fmtFecha(s.proximoMantenimiento)}</div>` : ''}</div>`).join('')}</div>`;
+    main.innerHTML = `<div style="max-width:600px;margin:0 auto;padding:1.5rem;"><div style="text-align:center;"><h2 style="color:#0d4a3a;">OLM INGENIERIA SAS</h2><p>📞 311 483 1801</p></div><div style="background:#0d4a3a;border-radius:14px;padding:14px;color:white;text-align:center;"><div>¿Necesitas soporte?</div><div style="font-size:2rem;font-weight:700;">311 483 1801</div></div><div style="border:1px solid #ccc;border-radius:12px;padding:1rem;margin:1rem 0;"><h3>${e.marca} ${e.modelo}</h3><p>📍 ${e.ubicacion}</p><p>👤 ${c?.nombre}</p><p>Serie: ${e.serie || 'N/A'}</p></div><button style="width:100%;background:#25D366;color:white;border:none;padding:14px;border-radius:12px;" onclick="window.open('https://wa.me/573114831801?text='+encodeURIComponent('Hola Oscar, necesito ayuda con el '+(e?.tipo||'')+' '+(e?.marca||'')+' '+(e?.modelo||'')+', podrías devolverme el mensaje'),'_blank')">📱 Contactar por WhatsApp</button><h3>Historial (${ss.length})</h3>${ss.map(s => `<div style="border:1px solid #d1ede0;border-radius:10px;padding:0.85rem;margin-bottom:0.65rem;"><div><strong>${s.tipo}</strong> - ${fmtFecha(s.fecha)}</div><div>🔧 ${s.tecnico}</div><div>${s.descripcion}</div>${s.proximoMantenimiento ? `<div>📅 Proximo: ${fmtFecha(s.proximoMantenimiento)}</div>` : ''}</div>`).join('')}</div>`;
     return true;
 }
 
