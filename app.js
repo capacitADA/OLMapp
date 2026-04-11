@@ -908,22 +908,24 @@ async function exportarInformeJMC(eid) {
             return new Promise(res => { const rd = new FileReader(); rd.onload = () => res(rd.result); rd.readAsDataURL(bl); });
         } catch { return url; }
     }
-    const SELLO_ARA = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/sello_ara.png';
-    const [logo_ara_b64, logo_jm_b64, sello_b64] = await Promise.all([imgToBase64(LOGO_ARA), imgToBase64(LOGO_JM), imgToBase64(SELLO_ARA)]);
+    const [logo_ara_b64, logo_jm_b64] = await Promise.all([imgToBase64(LOGO_ARA), imgToBase64(LOGO_JM)]);
 
     // estilos inline reutilizables
+    const PC = '-webkit-print-color-adjust:exact;print-color-adjust:exact;';
+    const SE = "font-family:'Special Elite',serif;";
     const S = {
-        hdrDark:  'background:#555555;color:white;font-weight:700;text-align:center;font-size:8pt;padding:3px 4px;border:1px solid #333;',
-        hdrLight: 'background:#bbbbbb;color:#111;font-weight:700;text-align:center;font-size:8pt;padding:3px 4px;border:1px solid #333;',
-        glbl:     'background:#dddddd;font-size:7pt;font-weight:700;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
-        cell:     'font-size:8pt;font-weight:700;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
-        opt:      'font-size:8pt;text-align:center;padding:3px 4px;border:1px solid #333;white-space:nowrap;',
-        lineR:    'height:13px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #aaa;padding:1px 4px;font-size:8pt;',
-        lineL:    'height:13px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #333;padding:1px 4px;font-size:8pt;',
-        evalSec:  'font-weight:700;font-style:italic;font-size:8pt;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
-        evalTxt:  'font-size:7pt;padding:2px 4px;border:1px solid #333;',
-        evalChk:  'text-align:center;font-size:13pt;font-weight:900;padding:2px 4px;border:1px solid #333;',
-        evalNo:   'padding:2px 4px;border:1px solid #333;',
+        hdrDark:  `background:#555555;color:white;font-weight:700;text-align:center;font-size:7.5pt;padding:2px 3px;border:1px solid #333;${PC}`,
+        hdrLight: `background:#bbbbbb;color:#111;font-weight:700;text-align:center;font-size:7.5pt;padding:2px 3px;border:1px solid #333;${PC}`,
+        glbl:     `background:#dddddd;font-size:6.5pt;font-weight:700;padding:1px 3px;border:1px solid #333;vertical-align:middle;${PC}`,
+        cell:     `font-size:7.5pt;font-weight:700;padding:1px 3px;border:1px solid #333;vertical-align:middle;`,
+        campo:    `font-size:7.5pt;padding:1px 3px;border:1px solid #333;vertical-align:middle;${SE}`,
+        opt:      'font-size:7pt;text-align:center;padding:2px 3px;border:1px solid #333;white-space:nowrap;',
+        lineR:    'height:11px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #aaa;padding:1px 3px;font-size:7pt;',
+        lineL:    'height:11px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #333;padding:1px 3px;font-size:7pt;',
+        evalSec:  'font-weight:700;font-style:italic;font-size:7pt;padding:1px 3px;border:1px solid #333;vertical-align:middle;',
+        evalTxt:  'font-size:6.5pt;padding:1px 3px;border:1px solid #333;',
+        evalChk:  'text-align:center;font-size:10pt;font-weight:900;padding:1px 3px;border:1px solid #333;',
+        evalNo:   'padding:1px 3px;border:1px solid #333;',
         tbl:      'width:100%;border-collapse:collapse;margin-top:-1px;',
     };
 
@@ -970,25 +972,19 @@ async function exportarInformeJMC(eid) {
     const MESES_TEXTO = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
     const fechaTexto = (dd && mm && aa) ? `${parseInt(dd)} ${MESES_TEXTO[parseInt(mm)-1]} 20${aa}` : '';
 
+    const SELLO_URL = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/sello_ara.png';
+    const sello_b64 = await imgToBase64(SELLO_URL);
+
     const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>${nombreArch}</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Meddon&display=swap" rel="stylesheet">
 <style>
   @page { size: A4; margin: 7mm; }
   @media print { html,body{margin:0;padding:0;} }
-  @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Playwrite+IE&family=Alex+Brush&family=Great+Vibes&family=Meddon&display=swap');
-  body { font-family: Arial, sans-serif; margin: 0; padding: 4px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .campo { font-family: 'Special Elite', serif; }
-  .firma-tec { font-size:16pt; color:#1a1a6e; }
+  body { font-family:Arial,sans-serif; margin:0; padding:4px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .campo { font-family:'Special Elite',serif; }
+  .firma-tec { font-family:'Meddon',cursive; font-size:14pt; color:#1a1a6e; }
 </style>
-<script>
-  (function(){
-    const fonts = ["'Playwrite IE',cursive","'Alex Brush',cursive","'Great Vibes',cursive","'Meddon',cursive"];
-    const pick = fonts[Math.floor(Math.random()*fonts.length)];
-    document.addEventListener('DOMContentLoaded', function(){
-      document.querySelectorAll('.firma-tec').forEach(el => el.style.fontFamily = pick);
-    });
-  })();
-<\/script>
 </head><body>
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
@@ -1081,11 +1077,11 @@ async function exportarInformeJMC(eid) {
   <tr><td style="${S.glbl};border-bottom:none;padding:2px 4px;">Descripcion de la falla funcionario tienda:</td></tr>
   ${lineRow(descFalla)}${lineRow()}${lineRow('', true)}
   <tr><td style="${S.glbl};border-top:1px solid #333;border-bottom:none;padding:2px 4px;">Diagnostico del tecnico:</td></tr>
-  ${lineRow(diag)}${lineRow()}${lineRow()}${lineRow()}${lineRow()}${lineRow()}${lineRow('', true)}
+  ${lineRow(diag)}${lineRow()}${lineRow()}${lineRow()}${lineRow('', true)}
   <tr><td style="${S.glbl};border-top:1px solid #333;border-bottom:none;padding:2px 4px;">Repuestos cambiados:</td></tr>
   ${lineRow(repuestos||'NA')}${lineRow()}${lineRow('', true)}
   <tr><td style="${S.glbl};border-top:1px solid #333;border-bottom:none;padding:2px 4px;">Observaciones:</td></tr>
-  ${lineRow(obs)}${lineRow()}${lineRow()}${lineRow('', true)}
+  ${lineRow(obs)}${lineRow()}${lineRow('', true)}
 </table>
 
 <!-- EVALUACION -->
@@ -1104,32 +1100,32 @@ async function exportarInformeJMC(eid) {
 <table style="${S.tbl}">
   <tr><td colspan="6" style="${S.hdrDark}">CONSTANCIA REALIZACION ASISTENCIA</td></tr>
   <tr>
-    <td style="${S.glbl};width:18%;text-align:center;">Contratistas</td>
-    <td style="${S.glbl};width:12%;text-align:center;">Cedula</td>
-    <td style="${S.glbl};width:13%;text-align:center;">Hora de entrada</td>
-    <td style="${S.glbl};width:13%;text-align:center;">Hora de salida</td>
+    <td style="${S.glbl};width:24%;text-align:center;">Contratistas</td>
+    <td style="${S.glbl};width:10%;text-align:center;">Cedula</td>
+    <td style="${S.glbl};width:11%;text-align:center;">Hora de entrada</td>
+    <td style="${S.glbl};width:11%;text-align:center;">Hora de salida</td>
     <td style="${S.glbl};width:8%;text-align:center;">Datos</td>
     <td style="${S.glbl};text-align:center;">Funcionario de la tienda</td>
   </tr>
   <tr>
-    <td style="${S.cell};" class="campo">${sesionActual?.nombre||''}</td>
-    <td style="${S.cell};text-align:center;" class="campo">${sesionActual?.cedula||''}</td>
-    <td style="${S.cell};text-align:center;" class="campo">${hEntrada}</td>
-    <td style="${S.cell};text-align:center;" class="campo">${hSalida}</td>
+    <td style="${S.campo};">${sesionActual?.nombre||''}</td>
+    <td style="${S.campo};text-align:center;">${sesionActual?.cedula||''}</td>
+    <td style="${S.campo};text-align:center;">${hEntrada}</td>
+    <td style="${S.campo};text-align:center;">${hSalida}</td>
     <td style="${S.glbl};">Nombre:</td>
-    <td style="${S.cell};" class="campo">${funcNombre}</td>
+    <td style="${S.campo};">${funcNombre}</td>
   </tr>
   <tr>
     <td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td>
-    <td style="${S.glbl};">Cedula:</td><td style="${S.cell};" class="campo">${funcCedula}</td>
+    <td style="${S.glbl};">Cedula:</td><td style="${S.campo};">${funcCedula}</td>
   </tr>
   <tr>
     <td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td>
-    <td style="${S.glbl};">Cargo:</td><td style="${S.cell};" class="campo">${funcCargo}</td>
+    <td style="${S.glbl};">Cargo:</td><td style="${S.campo};">${funcCargo}</td>
   </tr>
   <tr>
     <td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td><td style="${S.cell};"></td>
-    <td style="${S.glbl};">SAP:</td><td style="${S.cell};" class="campo">${funcSAP}</td>
+    <td style="${S.glbl};">SAP:</td><td style="${S.campo};">${funcSAP}</td>
   </tr>
   <tr>
     <td style="${S.glbl};">Firma Tecnico Encargado:</td>
@@ -1137,20 +1133,20 @@ async function exportarInformeJMC(eid) {
     <td style="${S.glbl};text-align:center;vertical-align:middle;" rowspan="2">Firma:</td>
     <td style="${S.cell};padding:4px;vertical-align:middle;" rowspan="2">
       <div style="display:flex;align-items:flex-end;gap:8px;">
-        <div style="flex:1;min-height:44px;vertical-align:middle;text-align:center;">
+        <div style="flex:1;min-height:44px;text-align:center;vertical-align:middle;">
           ${firmaDataUrl ? `<img src="${firmaDataUrl}" style="max-height:44px;">` : ''}
         </div>
         <div style="position:relative;width:106px;height:53px;flex-shrink:0;">
           <img src="${sello_b64}" style="position:absolute;top:0;left:0;width:106px;height:53px;object-fit:contain;filter:grayscale(100%) sepia(25%) brightness(0.75) contrast(1.1);-webkit-print-color-adjust:exact;print-color-adjust:exact;" onerror="this.style.display='none'">
-          <span style="position:absolute;top:4px;right:6px;font-family:'Special Elite',serif;font-size:8pt;font-weight:700;color:#6E5E5B;">${sap}</span>
-          <span class="firma-tec" style="position:absolute;bottom:4px;right:5px;font-size:11pt;color:#1a1a6e;">${dd}-${mm}-${aa}</span>
+          <span style="position:absolute;top:18px;right:2px;font-family:'Special Elite',serif;font-size:7pt;font-weight:700;color:#6E5E5B;">${sap}</span>
+          <span style="position:absolute;bottom:4px;right:3px;font-family:'Meddon',cursive;font-size:10pt;color:#1a1a6e;">${dd}-${mm}-${aa}</span>
         </div>
       </div>
     </td>
   </tr>
   <tr>
     <td style="${S.glbl};">Cargo:</td>
-    <td colspan="3" style="${S.cell};" class="campo">${sesionActual?.cargo||''}</td>
+    <td colspan="3" style="${S.campo};">${sesionActual?.cargo||''}</td>
   </tr>
 </table>
 
@@ -1405,23 +1401,28 @@ function generarInformePDF(eid) {
 </div>
 <table style="width:100%;border-collapse:collapse;margin-bottom:12px;">
   <tr>
-    <td style="padding:6px 10px;background:#f1f5f9;border:1px solid #ddd;width:50%;font-size:14px;"><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</td>
-    <td style="padding:6px 10px;background:#f1f5f9;border:1px solid #ddd;font-size:14px;"><strong>Generado:</strong> ${new Date().toLocaleString()}</td>
+    <td style="padding:6px 10px;background:#f1f5f9;border:1px solid #ddd;width:50%;font-size:14px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</td>
+    <td style="padding:6px 10px;background:#f1f5f9;border:1px solid #ddd;font-size:14px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><strong>Generado:</strong> ${new Date().toLocaleString()}</td>
   </tr>
   <tr>
     <td style="padding:6px 10px;border:1px solid #ddd;font-size:14px;" colspan="2"><strong>Activo:</strong> ${e?.tipo||''} ${e?.marca||''} ${e?.modelo||''} &nbsp;&nbsp; <strong>Serial:</strong> ${e?.serie || 'N/A'} &nbsp;&nbsp; <strong>Ubicacion:</strong> ${e?.ubicacion||''}</td>
   </tr>
 </table>
-<div style="background:#0d4a3a;color:white;font-weight:700;font-size:12px;padding:5px 10px;border-radius:4px;margin-bottom:8px;">
-  HISTORIAL DE SERVICIOS &nbsp;&nbsp; <span style="font-weight:400;font-size:10px;">${ss.length} registro(s)</span>
+<div style="background:#0d4a3a;color:white;font-weight:700;font-size:15px;padding:7px 12px;border-radius:4px;margin-bottom:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+  HISTORIAL DE SERVICIOS &nbsp;&nbsp; <span style="font-weight:400;font-size:13px;">${ss.length} registro(s)</span>
 </div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">${serviciosHTML}</div>
 </body></html>`;
 
     const blob = new Blob([html], {type:'text/html'});
     const url = URL.createObjectURL(blob);
-    const v = window.open(url, '_blank');
-    if (v) v.onload = () => v.print();
+    const v = window.open('', '_blank');
+    if (v) {
+        v.document.open();
+        v.document.write(html);
+        v.document.close();
+        v.onload = () => v.print();
+    }
 }
 
 function modalQR(eid) {
@@ -1527,12 +1528,7 @@ function manejarRutaQR() {
     if (topbar) topbar.style.display = 'none';
     if (botnav) botnav.style.display = 'none';
     main.style.background = 'white';
-    const waMsg = encodeURIComponent(
-    `Hola Oscar,\n\nNecesito ayuda con el equipo:\n` +
-    `${e?.tipo ? e.tipo + ' ' : ''}${e?.marca} ${e?.modelo}\n` +
-    `Ubicación: ${e?.ubicacion || 'N/A'}\n\n` +
-    `Podrías contactarme? Gracias.`
-);
+    const waMsg = encodeURIComponent('Hola Oscar, necesito ayuda con el ' + (e?.tipo||'') + ' ' + (e?.marca||'') + ' ' + (e?.modelo||'') + ' de la ubicacion ' + (e?.ubicacion||'') + ', podrías devolverme el mensaje');
     const waUrl = 'https://wa.me/573114831801?text=' + waMsg;
     main.innerHTML = `<div style="max-width:600px;margin:0 auto;padding:1.5rem;">
         <div style="text-align:center;margin-bottom:0.75rem;">
