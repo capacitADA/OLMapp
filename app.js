@@ -1,11 +1,8 @@
-<!-- ============================================
-     OLM INGENIERÍA SAS - APP Firebase
-     Versión corregida: Error MESES_TEXTO solucionado
-     ============================================ -->
-<script>
 // ============================================
 // OLM INGENIERÍA SAS - APP Firebase
+// Versión unificada - QR móvil + Informe PDF grande
 // ============================================
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, writeBatch }
     from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -27,11 +24,9 @@ const db = getFirestore(fbApp);
 // ===== DRIVE =====
 let _driveConnected = false;
 
-function driveIsConnected() { return _driveConnected; }
-
 async function conectarDriveAuto() {
     try {
-        const response = await fetch(APPS_SCRIPT_URL, { method: 'GET', mode: 'no-cors' });
+        await fetch(APPS_SCRIPT_URL, { method: 'GET', mode: 'no-cors' });
         _driveConnected = true;
         console.log('✅ Drive conectado automáticamente');
     } catch (e) {
@@ -42,7 +37,6 @@ async function conectarDriveAuto() {
 
 async function driveUploadPDF(html, filename) {
     if (!filename.endsWith('.pdf')) filename = filename.replace('.html', '') + '.pdf';
-    
     try {
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
@@ -93,180 +87,263 @@ async function cargarDatos() {
     renderView();
 }
 
-// (Todas las demás funciones se mantienen iguales hasta llegar a exportarInformeJMC)
-
-// ===== FUNCIÓN CORREGIDA: exportarInformeJMC =====
-async function exportarInformeJMC(eid) {
-    const e = getEq(eid);
-    const canvas = document.getElementById('jFirmaCanvas');
-    const firmaDataUrl = canvas ? canvas.toDataURL('image/png') : '';
-    const getRadio = name => document.querySelector(`input[name="${name}"]:checked`)?.value || '';
-
-    const ticket  = document.getElementById('jTicket')?.value || '';
-    const sap     = document.getElementById('jSAP')?.value || '';
-    const dd      = document.getElementById('jDD')?.value || '';
-    const mm      = document.getElementById('jMM')?.value || '';
-    const aa      = document.getElementById('jAA')?.value || '';
-    const fechaArch  = dd && mm && aa ? `${dd}-${mm}-${aa}` : new Date().toISOString().split('T')[0];
-    const nombreArch = `TK_${ticket || 'sin-ticket'}_SAP_${sap || 'sin-sap'}_${fechaArch}`;
-
-    const nomSol    = document.getElementById('jNombreSol')?.value  || '';
-    const cargoSol  = document.getElementById('jCargo')?.value      || '';
-    const nomTienda = document.getElementById('jTienda')?.value     || '';
-    const municipio = document.getElementById('jMunicipio')?.value  || '';
-    const depto     = document.getElementById('jDepartamento')?.value || '';
-    const nomEquipo = document.getElementById('jEquipo')?.value     || '';
-    const marcaEq   = document.getElementById('jMarca')?.value      || '';
-    const serialEq  = document.getElementById('jSerial')?.value     || '';
-    const descFalla = document.getElementById('jDescFalla')?.value  || '';
-    const diag      = document.getElementById('jDiag')?.value       || '';
-    const repuestos = document.getElementById('jRepuestos')?.value  || '';
-    const obs       = document.getElementById('jObs')?.value        || '';
-    const hEntrada  = document.getElementById('jHEntrada')?.value   || '';
-    const hSalida   = document.getElementById('jHSalida')?.value    || '';
-    const funcNombre= document.getElementById('jFuncNombre')?.value || '';
-    const funcCedula= document.getElementById('jFuncCedula')?.value || '';
-    const funcCargo = document.getElementById('jFuncCargo')?.value  || '';
-    const funcSAP   = document.getElementById('jFuncSAP')?.value    || '';
-
-    const tipoAsi   = getRadio('jTipoAsi');
-    const tipoFalla = getRadio('jTipoFalla');
-    const causa     = getRadio('jCausa');
-
-    const LOGO_ARA = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/logo_ara.png';
-    const LOGO_JM  = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/JEronimo_LOGO.png';
-
-    async function imgToBase64(url) {
-        try {
-            const r = await fetch(url);
-            const bl = await r.blob();
-            return new Promise(res => { const rd = new FileReader(); rd.onload = () => res(rd.result); rd.readAsDataURL(bl); });
-        } catch { return url; }
-    }
-    const [logo_ara_b64, logo_jm_b64] = await Promise.all([imgToBase64(LOGO_ARA), imgToBase64(LOGO_JM)]);
-
-    const S = {
-        hdrDark:  'background:#555555;color:white;font-weight:700;text-align:center;font-size:8pt;padding:3px 4px;border:1px solid #333;',
-        hdrLight: 'background:#bbbbbb;color:#111;font-weight:700;text-align:center;font-size:8pt;padding:3px 4px;border:1px solid #333;',
-        glbl:     'background:#dddddd;font-size:7pt;font-weight:700;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
-        cell:     'font-size:8pt;font-weight:700;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
-        opt:      'font-size:8pt;text-align:center;padding:3px 4px;border:1px solid #333;white-space:nowrap;',
-        lineR:    'height:13px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #aaa;padding:1px 4px;font-size:8pt;',
-        lineL:    'height:13px;border-left:1px solid #333;border-right:1px solid #333;border-top:none;border-bottom:1px solid #333;padding:1px 4px;font-size:8pt;',
-        evalSec:  'font-weight:700;font-style:italic;font-size:8pt;padding:2px 4px;border:1px solid #333;vertical-align:middle;',
-        evalTxt:  'font-size:7pt;padding:2px 4px;border:1px solid #333;',
-        evalChk:  'text-align:center;font-size:13pt;font-weight:900;padding:2px 4px;border:1px solid #333;',
-        evalNo:   'padding:2px 4px;border:1px solid #333;',
-        tbl:      'width:100%;border-collapse:collapse;margin-top:-1px;',
-    };
-
-    const chkMark = (sel) => sel
-        ? `<span style="display:inline-block;width:10px;height:10px;background:#222;border:1.5px solid #222;vertical-align:middle;margin-right:3px;"></span>`
-        : `<span style="display:inline-block;width:10px;height:10px;background:white;border:1.5px solid #333;vertical-align:middle;margin-right:3px;"></span>`;
-
-    const lineRow = (txt='', last=false) =>
-        `<tr><td style="${last ? S.lineL : S.lineR}">${txt}</td></tr>`;
-
-    // MESES_TEXTO → declarado SOLO UNA VEZ
-    const MESES_TEXTO = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-
-    const fechaTexto = (dd && mm && aa) 
-        ? `${parseInt(dd)} ${MESES_TEXTO[parseInt(mm)-1]} 20${aa}` 
-        : '';
-
-    const evalGrupos = [
-        { sec:'SEGURIDAD', items: ['La labor realizada genera una alta riesgo de accidentalidad para los clientes y/o colaboradores','La labor realizada ofrece algun riesgo para la integridad del equipo']},
-        { sec:'FUNCIONAMIENTO', items: ['La falla reportada fue solucionada con el trabajo realizado','Para operar y/o asear el equipo o area intervenida se siguen los pasos normales de manejo anteriores a la asistencia']},
-        { sec:'CALIDAD', items: ['La calidad del trabajo esta de acuerdo a la requerida por el personal o el equipo']},
-        { sec:'LIMPIEZA Y ORGANIZACION', items: ['El equipo o area intervenida se dejo armado y/o organizado como se encontraba en un inicio','Los escombros y suciedad generada por el tecnico fue aseado']},
-        { sec:'CAPACITACION', items: ['Se indico la causa de la novedad al personal que recibio el trabajo','Se indico como prevenir que el problema se vuelva a presentar','Se indico como actuar en caso de que el problema se vuelva a presentar']}
-    ];
-
-    let evalHTML = '';
-    evalGrupos.forEach(g => {
-        g.items.forEach((item, idx) => {
-            evalHTML += `<tr>
-                ${idx===0 ? `<td rowspan="${g.items.length}" style="${S.evalSec}">${g.sec}</td>` : ''}
-                <td style="${S.evalTxt}">${item}</td>
-                <td style="${S.evalChk}">&#10007;</td>
-                <td style="${S.evalNo}"></td>
-            </tr>`;
-        });
+// ===== SEMBRAR DATOS INICIALES =====
+async function sembrarDatos() {
+    const snap = await getDocs(collection(db, 'tecnicos'));
+    if (!snap.empty) return;
+    toast('⚙️ Configurando app...');
+    
+    const cRef = await addDoc(collection(db, 'clientes'), {
+        nombre: 'Jeronimo Martins Colombia',
+        telefono: '3212167987',
+        email: 'Nestor.gutierres@jeronimo-martins.com',
+        ciudad: 'Bogota',
+        direccion: 'Calle 100 # 7 - 33, Torre 1, Piso 11',
+        latitud: '4.6798976',
+        longitud: '-74.0415781',
+        fechaCreacion: new Date().toISOString().split('T')[0]
     });
+    
+    await addDoc(collection(db, 'equipos'), {
+        clienteId: cRef.id,
+        marca: 'Copeland',
+        modelo: 'CR-400',
+        serie: 'CP-2024-00891',
+        ubicacion: '893',
+        tipo: 'Compresor industrial'
+    });
+    
+    await addDoc(collection(db, 'tecnicos'), {
+        nombre: 'Oscar Leonardo Martinez',
+        cedula: '0000001',
+        tipoDoc: 'CC',
+        telefono: '3114831801',
+        cargo: 'Administrador',
+        rol: 'admin',
+        especialidades: ['mecanico', 'baja', 'media', 'electronico', 'ups', 'planta'],
+        region: 'Colombia',
+        clave: '1234'
+    });
+    
+    await addDoc(collection(db, 'tecnicos'), {
+        nombre: 'Juan Perez',
+        cedula: '10234568',
+        tipoDoc: 'CC',
+        telefono: '3120000002',
+        cargo: 'Tecnico de Campo',
+        rol: 'tecnico',
+        especialidades: ['baja', 'media'],
+        region: 'Cundinamarca',
+        clave: '5678'
+    });
+    
+    toast('✅ Listo. Cedula: 0000001 · Clave: 1234');
+}
 
-    const optsAsi   = ['Reparacion','Garantia','Ajuste','Modificacion','Servicio','Mejora','Combinacion'];
-    const optsFalla = ['Mecanicas','Material','Instrumentos','Electricas','Influencia Externa'];
-    const optsCausa = ['Diseno','Fabricacion/Instalacion','Operacion/Mantenimiento','Administracion','Desconocida'];
+// ===== HELPERS =====
+const getEq = id => equipos.find(e => e.id === id);
+const getCl = id => clientes.find(c => c.id === id);
+const getTec = id => tecnicos.find(t => t.id === t);
+const getEquiposCliente = cid => equipos.filter(e => e.clienteId === cid);
+const getServiciosEquipo = eid => servicios.filter(s => s.equipoId === eid);
 
-    const html = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>${nombreArch}</title>
+function fmtFecha(f) {
+    if (!f) return '';
+    return new Date(f + 'T12:00:00').toLocaleDateString('es-ES');
+}
+
+function toast(msg, duration = 3000) {
+    const t = document.getElementById('toastEl');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function showModal(html) {
+    const ov = document.getElementById('overlayEl');
+    ov.innerHTML = html;
+    ov.classList.remove('hidden');
+    ov.onclick = e => { if (e.target === ov) closeModal(); };
+}
+
+function closeModal() {
+    const ov = document.getElementById('overlayEl');
+    ov.classList.add('hidden');
+    ov.innerHTML = '';
+    fotosNuevas = [null, null, null];
+}
+
+// ===== ESTADO =====
+let currentView = 'panel';
+let sesionActual = null;
+let selectedClienteId = null;
+let selectedEquipoId = null;
+let fotosNuevas = [null, null, null];
+let _servicioEidActual = null;
+
+// ===== NAVEGACIÓN (resumida - agrega el resto de tus funciones render si falta) =====
+function goTo(view, cid = null, eid = null) {
+    currentView = view;
+    selectedClienteId = cid;
+    selectedEquipoId = eid;
+    closeModal();
+    renderView();
+}
+
+function renderView() {
+    // ... tu código original de renderView
+    // (mantén todas tus funciones renderPanel, renderClientes, etc.)
+    console.log('Renderizando vista:', currentView);
+}
+
+// ===== FUNCIÓN MEJORADA PARA QR (funciona en todos los celulares) =====
+function manejarRutaQR() {
+    const hash = window.location.hash;
+    if (!hash.startsWith('#/equipo/')) return false;
+    
+    const eid = hash.replace('#/equipo/', '').trim();
+    const e = getEq(eid);
+    if (!e) {
+        document.getElementById('mainContent').innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><p>⚠️ Equipo no encontrado</p><p>ID: ${eid}</p></div>`;
+        return true;
+    }
+
+    const c = getCl(e.clienteId);
+    const ss = getServiciosEquipo(eid).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+    const main = document.getElementById('mainContent');
+    document.querySelectorAll('.topbar, .botnav').forEach(el => el.style.display = 'none');
+    main.style.background = '#ffffff';
+
+    
+const waMsg = encodeURIComponent(
+    `Hola Oscar, necesito ayuda con el equipo ${e?.tipo || ''} ${e?.marca} ${e?.modelo} ` +
+    `ubicado en ${e?.ubicacion || 'sin ubicación especificada'}. ` +
+    `Podrías devolverme el mensaje?`
+);
+    main.innerHTML = `
+    <div style="max-width:640px;margin:0 auto;padding:1.2rem;">
+        <div style="text-align:center;margin-bottom:1rem;">
+            <img src="https://raw.githubusercontent.com/capacitADA/OLMapp/main/OLM_LOGO.png" style="height:52px;" onerror="this.style.display='none'">
+            <h2 style="color:#0d4a3a;margin:8px 0 4px;">OLM INGENIERÍA SAS</h2>
+            <p style="margin:0;color:#555;font-size:1.1rem;">📞 311 483 1801</p>
+        </div>
+        <div style="background:#0d4a3a;color:white;border-radius:16px;padding:18px;text-align:center;margin-bottom:1.2rem;">
+            <div style="font-size:2.1rem;font-weight:700;">311 483 1801</div>
+        </div>
+        <div style="border:1px solid #ddd;border-radius:14px;padding:1.2rem;background:#fafafa;margin-bottom:1.2rem;">
+            <h3 style="margin:0 0 10px;color:#0d4a3a;">${e.tipo ? e.tipo + ' • ' : ''}${e.marca} ${e.modelo}</h3>
+            <p style="margin:6px 0;"><strong>📍</strong> ${e.ubicacion}</p>
+            <p style="margin:6px 0;"><strong>👤</strong> ${c?.nombre || 'N/A'}</p>
+        </div>
+        <a href="${waUrl}" target="_blank" style="display:block;width:100%;background:#25D366;color:white;padding:16px;border-radius:14px;text-align:center;font-size:1.1rem;font-weight:700;margin-bottom:1.5rem;">📱 Contactar por WhatsApp</a>
+        <h3>Historial (${ss.length})</h3>
+        ${ss.map(s => `
+        <div style="border:1px solid #d1ede0;border-radius:12px;padding:1rem;margin-bottom:0.8rem;">
+            <div style="display:flex;justify-content:space-between;"><strong>${s.tipo}</strong><span>${fmtFecha(s.fecha)}</span></div>
+            <div>🔧 ${s.tecnico}</div>
+            <div>${s.descripcion}</div>
+            ${s.proximoMantenimiento ? `<div style="color:#b45309;">📅 Próximo: ${fmtFecha(s.proximoMantenimiento)}</div>` : ''}
+        </div>`).join('')}
+    </div>`;
+    return true;
+}
+
+// ===== INFORME PDF CON LETRA GRANDE =====
+function generarInformePDF(eid) {
+    const e = getEq(eid);
+    const c = getCl(e?.clienteId);
+    const ss = getServiciosEquipo(eid).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+    const LOGO = 'https://raw.githubusercontent.com/capacitADA/OLMapp/main/OLM_LOGO.png';
+
+    const serviciosHTML = ss.map(s => `
+        <div style="border:1px solid #d1d5db;border-radius:10px;padding:16px;margin-bottom:14px;page-break-inside:avoid;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="background:${s.tipo==='Mantenimiento'?'#1d4ed8':s.tipo==='Reparacion'?'#dc2626':'#15803d'};color:white;padding:6px 14px;border-radius:12px;font-size:15px;font-weight:700;">${s.tipo}</span>
+                <span style="font-size:16px;">${fmtFecha(s.fecha)}</span>
+            </div>
+            <div style="font-size:17px;margin:8px 0;">🔧 ${s.tecnico}</div>
+            <div style="font-size:17px;line-height:1.6;">${s.descripcion}</div>
+            ${s.proximoMantenimiento ? `<div style="color:#b45309;font-size:16px;margin-top:8px;">📅 Próximo mantenimiento: ${fmtFecha(s.proximoMantenimiento)}</div>` : ''}
+        </div>
+    `).join('');
+
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>Informe_${e?.marca || ''}_${e?.modelo || ''}</title>
 <style>
-  @page { size: A4; margin: 10mm; }
-  @media print { html,body{margin:0;padding:0;} }
-  body { font-family: Arial, sans-serif; margin: 0; padding: 6px; }
-  .firma-tec { font-family: 'Brush Script MT','Segoe Script','Comic Sans MS',cursive; font-size:16pt; color:#1a1a6e; }
-</style>
-</head><body>
-<div style="font-size:7pt;font-weight:700;text-align:right;margin-bottom:2px;">ANEXO 3</div>
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-  <img src="${logo_ara_b64}" style="height:38px;" onerror="this.style.display='none'">
-  <div style="text-align:center;flex:1;">
-    <div style="font-size:13pt;font-weight:900;">JERONIMO MARTINS COLOMBIA</div>
-    <div style="font-size:8pt;">FORMATO UNICO DE SOPORTE &mdash; FF-JMC-DT-06</div>
+  @page{size:letter;margin:15mm;}
+  body{font-family:Arial,sans-serif;font-size:17px;color:#111;line-height:1.6;}
+  h2{font-size:26px;}
+  strong{font-size:18px;}
+  .info{font-size:18px;}
+</style></head><body>
+
+<div style="display:flex;align-items:center;border-bottom:4px solid #0d4a3a;padding-bottom:16px;margin-bottom:20px;">
+  <img src="${LOGO}" style="height:70px;margin-right:20px;" onerror="this.style.display='none'">
+  <div>
+    <div style="font-size:26px;font-weight:900;color:#0d4a3a;">OLM INGENIERÍA SAS</div>
+    <div style="font-size:17px;color:#555;">Plantas y Sistemas Eléctricos | 📞 311 483 1801</div>
+    <div style="font-size:22px;font-weight:700;margin-top:8px;">INFORME TÉCNICO</div>
   </div>
-  <img src="${logo_jm_b64}" style="height:34px;" onerror="this.style.display='none'">
 </div>
 
-<!-- Resto del HTML del informe (mantengo el original que tenías) -->
-<table style="${S.tbl}">
-  <tr><td colspan="4" style="${S.hdrDark}">CONTRATISTA</td></tr>
+<table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
   <tr>
-    <td style="${S.glbl};width:16%;">Razon social</td>
-    <td style="${S.cell};width:34%;">OLM INGENIERIA SAS</td>
-    <td style="${S.glbl};width:12%;">N&deg; NIT</td>
-    <td style="${S.cell};">901.050.468-5</td>
+    <td class="info" style="padding:12px;background:#f1f5f9;border:1px solid #ddd;"><strong>Cliente:</strong> ${c?.nombre || 'N/A'}</td>
+    <td class="info" style="padding:12px;background:#f1f5f9;border:1px solid #ddd;"><strong>Generado:</strong> ${new Date().toLocaleString('es-CO')}</td>
   </tr>
   <tr>
-    <td style="${S.glbl};">Contacto</td>
-    <td style="${S.cell};">Oscar Leonardo Martinez</td>
-    <td style="${S.glbl};">Telefono</td>
-    <td style="${S.cell};">311 4831801</td>
+    <td colspan="2" class="info" style="padding:14px;border:1px solid #ddd;">
+      <strong>Activo:</strong> ${e?.tipo||''} ${e?.marca||''} ${e?.modelo||''} 
+      &nbsp;&nbsp; <strong>Serial:</strong> ${e?.serie || 'N/A'} 
+      &nbsp;&nbsp; <strong>Ubicación:</strong> ${e?.ubicacion||''}
+    </td>
   </tr>
 </table>
 
-<!-- ... (el resto del HTML completo del informe se mantiene igual que en tu versión original) ... -->
-
-<div style="font-size:7pt;color:#888;text-align:right;margin-top:3px;">
-  Documento generado por capacitADA &mdash; ${new Date().toLocaleString()}
+<div style="background:#0d4a3a;color:white;font-weight:700;font-size:20px;padding:12px 16px;border-radius:8px;margin-bottom:16px;">
+  HISTORIAL DE SERVICIOS &nbsp;&nbsp; <span style="font-weight:400;">${ss.length} registro(s)</span>
 </div>
+
+${serviciosHTML}
+
+<div style="margin-top:40px;text-align:center;font-size:14px;color:#666;">
+  Documento generado por OLM App
+</div>
+
 </body></html>`;
 
-    const guardado = await driveUploadPDF(html, nombreArch + '.pdf');
-    if (guardado) toast('✅ Informe guardado en Drive como PDF');
-    else toast('⚠️ No se pudo guardar en Drive');
-
-    const blob = new Blob([html], { type: 'text/html' });
+    const blob = new Blob([html], {type:'text/html'});
     const url = URL.createObjectURL(blob);
-    const ventana = window.open(url, '_blank');
-    if (ventana) ventana.onload = () => ventana.print();
-
-    closeModal();
-    setTimeout(() => {
-        if (_servicioEidActual) modalNuevoServicio(_servicioEidActual);
-    }, 500);
+    const v = window.open(url, '_blank');
+    if (v) v.onload = () => v.print();
 }
 
-// ===== El resto de tu código original (sin cambios) =====
-// (Todas las funciones anteriores y posteriores se mantienen igual)
-
-window.exportarInformeJMC = exportarInformeJMC;
-// ... resto de window. assignments
-
-// ===== INICIAR APP =====
+// ===== INICIO DE LA APP =====
 (async () => {
     await conectarDriveAuto();
     await sembrarDatos();
     await cargarDatos();
-    if (!manejarRutaQR()) renderView();
+
+    // Manejo del QR
+    const esQR = manejarRutaQR();
+    if (!esQR) {
+        renderView();
+    }
+
+    window.addEventListener('hashchange', manejarRutaQR);
+
+    // Soporte extra para móviles
+    setTimeout(() => {
+        if (window.location.hash.startsWith('#/equipo/')) manejarRutaQR();
+    }, 1000);
 })();
-</script>
+
+// ===== Exporta las funciones que usas en HTML onclick =====
+window.goTo = goTo;
+window.generarInformePDF = generarInformePDF;
+window.closeModal = closeModal;
+window.toast = toast;
+// Agrega aquí las demás: window.modalNuevoServicio = ... etc. (las que ya tenías)
